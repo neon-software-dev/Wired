@@ -1,0 +1,257 @@
+#version 450
+
+//
+// Internal
+//
+const uint MESH_MAX_LOD = 3;
+const float FLT_MAX = 3.402823466e+38;
+
+struct DrawDataPayload
+{
+    uint objectId;
+};
+
+struct ObjectInstanceDataPayload
+{
+    bool isValid;
+    uint objectId;
+    uint meshId;
+    uint materialId;
+    mat4 modelTransform;
+};
+
+struct MembershipPayload
+{
+    bool isValid;
+    uint batchId;
+};
+
+struct ObjectBatchPayload
+{
+    bool isValid;
+    uint meshId;
+    uint numMembers;
+    uint drawDataOffset;
+
+    uint lodInstanceCounts[MESH_MAX_LOD];
+};
+
+struct MeshLODPayload
+{
+    bool isValid;
+
+    float renderDistance;
+
+    uint vertexOffset;
+    uint numIndices;
+    uint firstIndex;
+};
+
+struct MeshPayload
+{
+    bool hasCullAABB;
+    vec3 cullAABBMin;
+    vec3 cullAABBMax;
+    uint numBones;
+
+    MeshLODPayload lodData[MESH_MAX_LOD];
+};
+
+struct CullInputParamsUniformPayload
+{
+    uint numGroupInstances;
+};
+
+struct ViewProjectionUniformPayload
+{
+    mat4 viewTransform;
+    mat4 projectionTransform;
+};
+
+bool ShouldBeDrawn(MeshPayload meshPayload, ObjectInstanceDataPayload instanceData);
+uint ChooseLOD(MeshPayload meshPayload, ObjectInstanceDataPayload instanceData);
+
+//
+// Inputs
+//
+layout(std430, set = 0, binding = 0) readonly buffer ObjectInstanceDataPayloadBuffer
+{
+    ObjectInstanceDataPayload data[];
+} i_objectInstances;
+
+layout(std430, set = 0, binding = 1) readonly buffer MembershipPayloadBuffer
+{
+    MembershipPayload data[];
+} i_membership;
+
+layout(std430, set = 0, binding = 2) readonly buffer MeshPayloadBuffer
+{
+    MeshPayload data[];
+} i_meshPayloads;
+
+layout(std140, set = 2, binding = 0) uniform CullInputParamsUniformPayloadBuffer
+{
+    CullInputParamsUniformPayload data;
+} u_inputParams;
+
+layout(std140, set = 2, binding = 1) uniform ViewProjectionUniformPayloadBuffer
+{
+    ViewProjectionUniformPayload data;
+} u_viewProjectionData;
+
+//
+// Outputs
+//
+layout(std430, set = 1, binding = 0) buffer DrawDataPayloadBuffer
+{
+    DrawDataPayload data[];
+} o_drawDatas;
+
+layout(std430, set = 1, binding = 1) buffer ObjectBatchPayloadBuffer
+{
+    ObjectBatchPayload data[];
+} o_batchData;
+
+layout(local_size_x = 256,  local_size_y = 1,  local_size_z = 1) in;
+
+void main()
+{
+    if (gl_GlobalInvocationID.x > u_inputParams.data.numGroupInstances)
+    {
+        return;
+    }
+
+    // Tricky: Note that we leave old data in the draw data buffer for stuff that should no longer
+    // be rendered and just rely on the batch's coordInstanceIndex in object_draw.comp to not draw
+    // anything in the draw data buffer that's not relevant.
+
+    const ObjectInstanceDataPayload objectInstanceData = i_objectInstances.data[gl_GlobalInvocationID.x];
+    if (!objectInstanceData.isValid)
+    {
+        return;
+    }
+
+    const MembershipPayload membershipPayload = i_membership.data[objectInstanceData.objectId];
+    if (!membershipPayload.isValid)
+    {
+        return;
+    }
+
+    const ObjectBatchPayload batchPayload = o_batchData.data[membershipPayload.batchId];
+    if (!batchPayload.isValid)
+    {
+        return;
+    }
+
+    const MeshPayload meshPayload = i_meshPayloads.data[objectInstanceData.meshId];
+
+    // Ignore objects that should not be drawn
+    if (!ShouldBeDrawn(meshPayload, objectInstanceData))
+    {
+        return;
+    }
+
+    // Choose which lod to draw
+    const uint lod = ChooseLOD(meshPayload, objectInstanceData);
+
+    const uint instanceIndex = atomicAdd(o_batchData.data[membershipPayload.batchId].lodInstanceCounts[lod], 1);
+
+    const uint drawDataIndex =
+        batchPayload.drawDataOffset +         // The starting draw data offset for the batch
+        (batchPayload.numMembers * lod) +     // Plus, offset by the LOD that was chosen
+        instanceIndex;                        // Plus, offset by the LOD instance index that was retrieved
+
+    // Record this object for drawing
+    o_drawDatas.data[drawDataIndex].objectId = objectInstanceData.objectId;
+}
+
+vec3 GetAABBCorner(uint cornerID, vec3 min, vec3 max)
+{
+    return vec3((cornerID & 1U) != 0 ? max.x : min.x,
+                (cornerID & 2U) != 0 ? max.y : min.y,
+                (cornerID & 4U) != 0 ? max.z : min.z);
+}
+
+int CalculateClipCode(vec4 clipPoint)
+{
+    int clipCode = 0;
+
+    if (clipPoint.x < -clipPoint.w) { clipCode |= 0x01; }
+    if (clipPoint.x > clipPoint.w)  { clipCode |= 0x02; }
+    if (clipPoint.y < -clipPoint.w) { clipCode |= 0x04; }
+    if (clipPoint.y > clipPoint.w)  { clipCode |= 0x08; }
+    if (clipPoint.z < 0)            { clipCode |= 0x10; }
+    if (clipPoint.z > clipPoint.w)  { clipCode |= 0x20; }
+
+    return clipCode;
+}
+
+bool ShouldBeDrawn(MeshPayload meshPayload, ObjectInstanceDataPayload instanceData)
+{
+    // Cull check
+    if (meshPayload.hasCullAABB)
+    {
+        int clipCode[8];
+
+        for (uint x = 0; x < 8; ++x)
+        {
+            const vec3 modelSpacePoint = GetAABBCorner(x, meshPayload.cullAABBMin, meshPayload.cullAABBMax);
+
+            const vec4 clipSpacePoint = u_viewProjectionData.data.projectionTransform *
+                                        u_viewProjectionData.data.viewTransform *
+                                        instanceData.modelTransform *
+                                        vec4(modelSpacePoint, 1);
+
+            clipCode[x] = CalculateClipCode(clipSpacePoint);
+        }
+
+        const bool triviallyOutside = ( clipCode[0] & clipCode[1] & clipCode[2] & clipCode[3] &
+                                        clipCode[4] & clipCode[5] & clipCode[6] & clipCode[7]) != 0;
+
+        if (triviallyOutside)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+uint ChooseLOD(MeshPayload meshPayload, ObjectInstanceDataPayload instanceData)
+{
+    const mat4 inverseViewMatrix = inverse(u_viewProjectionData.data.viewTransform);
+    const vec3 viewWorldPos = vec3(inverseViewMatrix[3]);
+    const vec3 objectWorldPos = vec3(instanceData.modelTransform[3]);
+
+    float objectDistance = 0.0f;
+
+    // If the object's mesh has a cull volume, use the shortest distance to any of that volume's
+    // points as the distance to the object, for LOD selection purposes
+    if (meshPayload.hasCullAABB)
+    {
+        objectDistance = FLT_MAX;
+
+        for (uint x = 0; x < 8; ++x)
+        {
+            const vec3 aabbCornerModelSpace = GetAABBCorner(x, meshPayload.cullAABBMin, meshPayload.cullAABBMax);
+            const vec3 aabbCornerWorldPos = (instanceData.modelTransform * vec4(aabbCornerModelSpace, 1.0f)).xyz;
+            objectDistance = min(objectDistance, distance(viewWorldPos, aabbCornerWorldPos));
+        }
+    }
+    // Otherwise, just use the distance to the object, not taking into account the dimensions of the object
+    else
+    {
+        objectDistance = distance(viewWorldPos, objectWorldPos);
+    }
+
+    for (uint lod = 0; lod < MESH_MAX_LOD; ++lod)
+    {
+        const MeshLODPayload lodPayload = meshPayload.lodData[lod];
+        if (!lodPayload.isValid || (lodPayload.renderDistance > objectDistance))
+        {
+            return lod == 0 ? lod : lod - 1;
+        }
+    }
+
+    return 0;
+}

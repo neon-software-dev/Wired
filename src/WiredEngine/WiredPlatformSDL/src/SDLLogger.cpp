@@ -1,0 +1,60 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Joe @ NEON Software
+ *
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+ 
+#include <Wired/Platform/SDLLogger.h>
+
+#include <SDL3/SDL.h>
+
+#include <string>
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+
+namespace NCommon
+{
+
+SDLLogger::SDLLogger(const LogLevel& minLogLevel)
+    : m_minLogLevel(minLogLevel)
+{
+
+}
+
+std::string LogLevelToStr(LogLevel logLevel)
+{
+    switch (logLevel)
+    {
+        case LogLevel::Debug:   return "Debug";
+        case LogLevel::Info:    return "Info";
+        case LogLevel::Warning: return "Warning";
+        case LogLevel::Error:   return "Error";
+        case LogLevel::Fatal:   return "Fatal";
+        default:                return "Unknown";
+    }
+}
+
+void SDLLogger::Log(LogLevel loglevel, std::string_view str) const
+{
+    if (loglevel < m_minLogLevel) { return; }
+
+    // Grab the log's timestamp before we wait for the mutex to be acquired
+    const std::time_t timestamp_time_t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+
+    std::stringstream ss;
+    ss
+        << "[" << std::put_time(std::localtime(&timestamp_time_t), "%Y-%m-%d %X") << "]"
+        << " [SDL_LOG] "
+        << "[" << LogLevelToStr(loglevel) << "]"
+        << " "
+        << str
+        << std::endl;
+
+    // Grab the log mutex to prevent overlapping log output from multiple threads
+    const std::lock_guard<std::mutex> logLock(m_logMutex);
+
+    SDL_Log("%s", ss.str().c_str());
+}
+
+}

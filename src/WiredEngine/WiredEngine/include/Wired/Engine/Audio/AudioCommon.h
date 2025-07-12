@@ -1,0 +1,15 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Joe @ NEON Software
+ *
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+ 
+#ifndef WIREDENGINE_WIREDENGINE_INCLUDE_WIRED_ENGINE_AUDIO_AUDIOCOMMON_H
+#define WIREDENGINE_WIREDENGINE_INCLUDE_WIRED_ENGINE_AUDIO_AUDIOCOMMON_H
+
+namespace Wired::Engine
+{
+    using AudioSourceId = unsigned int;
+}
+
+#endif //WIREDENGINE_WIREDENGINE_INCLUDE_WIRED_ENGINE_AUDIO_AUDIOCOMMON_H

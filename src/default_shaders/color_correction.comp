@@ -1,0 +1,87 @@
+#version 450
+
+//
+// Internal
+//
+const uint POST_EFFECT_LOCAL_SIZE_X = 16;
+const uint POST_EFFECT_LOCAL_SIZE_Y = 16;
+const uint POST_EFFECT_LOCAL_SIZE_Z = 1;
+
+struct DataPayloadUniform
+{
+    // General Settings
+    uint renderWidth;
+    uint renderHeight;
+
+    // Tone Mapping Settings
+    bool doToneMapping;
+    float exposure;
+
+    // Gamma Correction Settings
+    bool doGammaCorrection;
+    float gamma;
+};
+
+//
+// Inputs
+//
+layout(set = 0, binding = 0) uniform sampler2D i_inputImage;
+
+layout(std140, set = 0, binding = 1) uniform DataPayloadUniformBuffer
+{
+    DataPayloadUniform data;
+} u_data;
+
+layout(local_size_x = POST_EFFECT_LOCAL_SIZE_X, local_size_y = POST_EFFECT_LOCAL_SIZE_Y, local_size_z = POST_EFFECT_LOCAL_SIZE_Z) in;
+
+//
+// Outputs
+//
+layout(set = 1, binding = 0, rgba16) uniform image2D o_outputImage;
+
+vec4 DoWork()
+{
+    const vec2 inUV = {
+        (float(gl_GlobalInvocationID.x) + 0.5f) / float(u_data.data.renderWidth),
+        (float(gl_GlobalInvocationID.y) + 0.5f) / float(u_data.data.renderHeight),
+    };
+
+    vec4 pixel = texture(i_inputImage, inUV);
+
+    //////////////////////////////
+    // Tone Mapping
+    // (HDR Linear -> LDR Linear)
+    //////////////////////////////
+    if (u_data.data.doToneMapping)
+    {
+        const vec3 ldr = vec3(1.0f) - exp(-pixel.xyz * u_data.data.exposure);
+        pixel.xyz = ldr;
+    }
+
+    //////////////////////////////
+    // Gamma Correction
+    // (Linear -> SRGB)
+    //////////////////////////////
+    if (u_data.data.doGammaCorrection)
+    {
+        const vec3 srgb = pow(pixel.rgb, vec3(1.0f / u_data.data.gamma));
+        pixel.xyz = srgb;
+    }
+
+    return pixel;
+}
+
+void main()
+{
+    // Ignore out of render size work invocations (for when a render dimension isn't cleanly divisible by
+    // the local group size).
+    if (gl_GlobalInvocationID.x >= u_data.data.renderWidth || gl_GlobalInvocationID.y >= u_data.data.renderHeight)
+    {
+        return;
+    }
+
+    const vec4 outPixel = DoWork();
+
+    imageStore(o_outputImage, ivec2(gl_GlobalInvocationID.xy), outPixel);
+
+}

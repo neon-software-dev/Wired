@@ -1,0 +1,20 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Joe @ NEON Software
+ *
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+ 
+#ifndef WIREDENGINE_WIREDRENDERER_INCLUDE_WIRED_RENDER_RENDERABLE_RENDERABLECOMMON_H
+#define WIREDENGINE_WIREDRENDERER_INCLUDE_WIRED_RENDER_RENDERABLE_RENDERABLECOMMON_H
+
+namespace Wired::Render
+{
+    enum class RenderableType
+    {
+        Object,
+        Sprite,
+        Light
+    };
+}
+
+#endif //WIREDENGINE_WIREDRENDERER_INCLUDE_WIRED_RENDER_RENDERABLE_RENDERABLECOMMON_H

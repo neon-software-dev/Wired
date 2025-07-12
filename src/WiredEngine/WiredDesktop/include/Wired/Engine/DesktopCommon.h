@@ -1,0 +1,17 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Joe @ NEON Software
+ *
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+ 
+#ifndef WIREDENGINE_WIREDDESKTOP_INCLUDE_WIRED_ENGINE_DESKTOPCOMMON_H
+#define WIREDENGINE_WIREDDESKTOP_INCLUDE_WIRED_ENGINE_DESKTOPCOMMON_H
+
+namespace Wired::Engine
+{
+    const auto WIRED_FILES_SUBDIR = "wired";
+    const auto PACKAGES_FILES_SUBDIR = "packages";
+    const auto SHADERS_FILES_SUBDIR = "shaders";
+}
+
+#endif //WIREDENGINE_WIREDDESKTOP_INCLUDE_WIRED_ENGINE_DESKTOPCOMMON_H

@@ -1,0 +1,98 @@
+#version 450
+
+//
+// Internal
+//
+struct VolumetricLightingEffectUniformPayload
+{
+    uint renderWidth;
+    uint renderHeight;
+
+    vec3 camera_worldPos;
+
+    mat4 viewTransform;
+    mat4 projectionTransform;
+};
+
+struct LightPayload
+{
+    bool isValid;
+    uint id;
+    bool castsShadows;
+    vec3 worldPos;
+
+    // Base light properties
+    uint lightType;                 // (LIGHT_TYPE_{X})
+    uint attenuationMode;           // (ATTENUATION_MODE_{X})
+    float maxAffectRange;
+    vec3 color;
+    vec3 directionUnit;
+    float areaOfEffect;
+};
+
+//
+// Inputs
+//
+layout(set = 0, binding = 0) uniform sampler2D i_inputImage;
+
+layout(set = 0, binding = 1) uniform sampler2D i_cameraDepthBuffer;
+layout(set = 0, binding = 2) uniform sampler2DArray i_shadowSampler_array;
+
+layout(std140, set = 0, binding = 3) uniform VolumetricLightingEffectUniformPayloadBuffer
+{
+    VolumetricLightingEffectUniformPayload data;
+} u_data;
+
+layout(std140, set = 0, binding = 4) uniform LightPayloadBuffer
+{
+    LightPayload data;
+} u_lightPayload;
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+//
+// Outputs
+//
+layout(set = 1, binding = 0, rgba16) uniform image2D o_outputImage;
+
+vec4 DoWork(vec2 uv)
+{
+    const mat4 camera_inverseViewProj = inverse(u_data.data.projectionTransform) * inverse(u_data.data.viewTransform);
+
+    // [1..0] from near to far
+    const float fragTextureDepth = texture(i_cameraDepthBuffer, uv).r;
+
+    // Convert UV to NDC XY in [-1, 1]
+    const float ndcX = uv.x * 2.0 - 1.0;
+    const float ndcY = uv.y * 2.0 - 1.0;
+
+    const vec4 ndcPos = vec4(ndcX, ndcY, fragTextureDepth, 1.0);
+
+    vec4 worldPos = camera_inverseViewProj * ndcPos;
+    worldPos.x /= worldPos.w;
+    worldPos.y /= worldPos.w;
+    worldPos.z /= worldPos.w;
+
+    // Correct for flipped viewport
+    // TODO: How to account for this in a cross-api way?
+    worldPos.y = -worldPos.y;
+
+    return worldPos;
+}
+
+void main()
+{
+    if (gl_GlobalInvocationID.x >= u_data.data.renderWidth || gl_GlobalInvocationID.y >= u_data.data.renderHeight)
+    {
+        return;
+    }
+
+    const vec2 inUV = {
+        (float(gl_GlobalInvocationID.x) + 0.5f) / float(u_data.data.renderWidth),
+        (float(gl_GlobalInvocationID.y) + 0.5f) / float(u_data.data.renderHeight),
+    };
+
+    const vec3 fragWorldPos = DoWork(inUV).xyz;
+
+    imageStore(o_outputImage, ivec2(gl_GlobalInvocationID.xy), vec4(fragWorldPos, 1.0f));
+}

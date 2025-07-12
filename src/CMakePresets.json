@@ -1,0 +1,94 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "desktop",
+      "hidden": true,
+      "cacheVariables": {
+        "WIREDENGINE_TARGET_PLATFORM": "Desktop",
+        "WIRED_OPT_IMGUI": "ON",
+        "BUILD_SHARED_LIBS": "ON",
+        "CMAKE_DEBUG_POSTFIX": "d",
+        "CMAKE_TOOLCHAIN_FILE": "../external/vcpkg/scripts/buildsystems/vcpkg.cmake"
+      }
+    },
+    {
+      "name": "debug",
+      "hidden": true,
+      "binaryDir": "../build/debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "release",
+      "hidden": true,
+      "binaryDir": "../build/release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "distro",
+      "hidden": true,
+      "binaryDir": "../build/distro",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "linux",
+      "hidden": true,
+      "cacheVariables": {
+      }
+    },
+    {
+      "name": "windows",
+      "hidden": true,
+      "cacheVariables": {
+      }
+    },
+    {
+      "name": "desktop-debug-linux",
+      "inherits": ["desktop", "debug", "linux"],
+      "displayName": "Desktop-Debug-Linux",
+      "cacheVariables": {
+        "WIRED_OPT_DEV_BUILD": "ON"
+      }
+    },
+    {
+      "name": "desktop-release-linux",
+      "inherits": ["desktop", "release", "linux"],
+      "displayName": "Desktop-Release-Linux",
+      "cacheVariables": {
+        "WIRED_OPT_DEV_BUILD": "ON"
+      }
+    },
+    {
+      "name": "desktop-distro-linux",
+      "inherits": ["desktop", "distro", "linux"],
+      "displayName": "Desktop-Distro-Linux"
+    },
+    {
+      "name": "desktop-debug-windows",
+      "inherits": ["desktop", "debug", "windows"],
+      "displayName": "Desktop-Debug-Windows",
+      "cacheVariables": {
+        "WIRED_OPT_DEV_BUILD": "ON"
+      }
+    },
+    {
+      "name": "desktop-release-windows",
+      "inherits": ["desktop", "release", "windows"],
+      "displayName": "Desktop-Release-Windows",
+      "cacheVariables": {
+        "WIRED_OPT_DEV_BUILD": "ON"
+      }
+    },
+    {
+      "name": "desktop-distro-windows",
+      "inherits": ["desktop", "distro", "windows"],
+      "displayName": "Desktop-Distro-Windows"
+    }
+  ]
+}

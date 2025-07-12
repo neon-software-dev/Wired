@@ -1,0 +1,75 @@
+[sdl3]
+License:  Zlib	
+Attribution: Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
+Link: https://github.com/libsdl-org/SDL
+
+[sdl3-image]
+License: Zlib
+Attribution: Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
+Link: https://github.com/libsdl-org/SDL_image/	
+
+[spirv-reflect]
+License: Apache 2.0
+Attribution: The Khronos Group Inc.
+Link: https://github.com/KhronosGroup/SPIRV-Reflect
+
+[glm]
+License: The Happy Bunny License (Modified MIT License)
+Attribution: Copyright (c) 2005 - G-Truc Creation	
+Link: https://github.com/g-truc/glm
+
+[entt]
+License: The MIT License (MIT)
+Attribution: Copyright (c) 2017-2025 Michele Caini, author of EnTT
+Link: https://github.com/skypjack/entt
+
+[imgui]
+License: The MIT License (MIT)
+Attribution: Copyright (c) 2014-2025 Omar Cornut
+Link: https://github.com/ocornut/imgui
+
+[implot]
+License: The MIT License (MIT)
+Attribution: Copyright (c) 2020 Evan Pezent
+Link: https://github.com/epezent/implot
+
+[gtest]
+License: BSD 3 Clause
+Attribution: Copyright 2008, Google Inc.
+Link: https://github.com/google/googletest
+
+[nlohmann-json]
+License: The MIT License (MIT)
+Attribution: Copyright (c) 2013-2025 Niels Lohmann
+Link: https://github.com/nlohmann/json
+
+[assimp]
+License: Open Asset Import Library license, Poly2Tri license
+Attribution: Copyright (c) 2006-2021, assimp team , (c) 2009-2010, Poly2Tri Contributors
+Link: https://github.com/assimp/assimp
+
+[vulkan-headers]
+License:  Apache-2.0, MIT
+Attribution: Copyright 2015-2023 The Khronos Group Inc.
+Link: https://github.com/KhronosGroup/Vulkan-Headers
+
+[vulkan-memory-allocator]
+License: The MIT License (MIT)
+Attribution: Copyright (c) 2017-2025 Advanced Micro Devices, Inc. All rights reserved.
+Link: https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator	
+
+[joltphysics]
+License: The MIT License (MIT)
+Attribution: Copyright 2021 Jorrit Rouwe
+Link: https://github.com/jrouwe/JoltPhysics
+
+[audiofile]
+License: The MIT License (MIT)
+Attribution: Copyright (c) 2017 Adam Stark
+Link: https://github.com/adamstark/AudioFile
+
+[openal-soft]
+License: LGPL 2.0 , PFFFT
+Attribution:  Copyright (c) 2023  Christopher Robinson, Copyright (c) 2013  Julien Pommier ( pommier@modartt.com ), Copyright (c) 2004 the University Corporation for Atmospheric Research ("UCAR")
+Link: https://github.com/kcat/openal-soft
+

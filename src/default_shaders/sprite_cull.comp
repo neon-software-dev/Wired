@@ -1,0 +1,171 @@
+#version 450
+
+//
+// Internal
+//
+const uint MESH_MAX_LOD = 3;
+
+struct DrawDataPayload
+{
+    uint spriteId;
+};
+
+struct SpriteInstanceDataPayload
+{
+    bool isValid;
+    uint spriteId;
+    uint meshId;
+    mat4 modelTransform;
+    vec2 uvTranslation;
+    vec2 uvSize;
+};
+
+struct MembershipPayload
+{
+    bool isValid;
+    uint batchId;
+};
+
+struct SpriteBatchPayload
+{
+    bool isValid;
+    uint meshId;
+    uint numMembers;
+    uint drawDataOffset;
+
+    uint lodInstanceCount;
+};
+
+struct MeshLODPayload
+{
+    bool isValid;
+
+    float renderDistance;
+
+    uint vertexOffset;
+    uint numIndices;
+    uint firstIndex;
+};
+
+struct MeshPayload
+{
+    bool hasCullAABB;
+    vec3 cullAABBMin;
+    vec3 cullAABBMax;
+    uint numBones;
+
+    MeshLODPayload lodData[MESH_MAX_LOD];
+};
+
+struct CullInputParamsUniformPayload
+{
+    uint numGroupInstances;
+};
+
+struct ViewProjectionUniformPayload
+{
+    mat4 viewTransform;
+    mat4 projectionTransform;
+};
+
+bool ShouldBeDrawn(MeshPayload meshPayload, SpriteInstanceDataPayload instanceData);
+
+//
+// Inputs
+//
+layout(std430, set = 0, binding = 0) readonly buffer SpriteInstanceDataPayloadBuffer
+{
+    SpriteInstanceDataPayload data[];
+} i_spriteInstances;
+
+layout(std430, set = 0, binding = 1) readonly buffer MembershipPayloadBuffer
+{
+    MembershipPayload data[];
+} i_membership;
+
+layout(std430, set = 0, binding = 2) readonly buffer MeshPayloadBuffer
+{
+    MeshPayload data[];
+} i_meshPayloads;
+
+layout(std140, set = 2, binding = 0) uniform CullInputParamsUniformPayloadBuffer
+{
+    CullInputParamsUniformPayload data;
+} u_inputParams;
+
+layout(std140, set = 2, binding = 1) uniform ViewProjectionUniformPayloadBuffer
+{
+    ViewProjectionUniformPayload data;
+} u_viewProjectionData;
+
+//
+// Outputs
+//
+layout(std430, set = 1, binding = 0) buffer DrawDataPayloadBuffer
+{
+    DrawDataPayload data[];
+} o_drawDatas;
+
+layout(std430, set = 1, binding = 1) buffer SpriteBatchPayloadBuffer
+{
+    SpriteBatchPayload data[];
+} o_batchData;
+
+layout(local_size_x = 256,  local_size_y = 1,  local_size_z = 1) in;
+
+void main()
+{
+    if (gl_GlobalInvocationID.x > u_inputParams.data.numGroupInstances)
+    {
+        return;
+    }
+
+    // Tricky: Note that we leave old data in the draw data buffer for stuff that should no longer
+    // be rendered and just rely on the batch's coordInstanceIndex in sprite_draw.comp to not draw
+    // anything in the draw data buffer that's not relevant.
+
+    const SpriteInstanceDataPayload spriteInstanceData = i_spriteInstances.data[gl_GlobalInvocationID.x];
+    if (!spriteInstanceData.isValid)
+    {
+        return;
+    }
+
+    const MembershipPayload membershipPayload = i_membership.data[spriteInstanceData.spriteId];
+    if (!membershipPayload.isValid)
+    {
+        return;
+    }
+
+    const SpriteBatchPayload batchPayload = o_batchData.data[membershipPayload.batchId];
+    if (!batchPayload.isValid)
+    {
+        return;
+    }
+
+    const MeshPayload meshPayload = i_meshPayloads.data[spriteInstanceData.meshId];
+
+    // Ignore sprites that should not be drawn
+    if (!ShouldBeDrawn(meshPayload, spriteInstanceData))
+    {
+        return;
+    }
+
+    // Sprite mesh only has one lod
+    const uint lod = 0;
+
+    const uint instanceIndex = atomicAdd(o_batchData.data[membershipPayload.batchId].lodInstanceCount, 1);
+
+    const uint drawDataIndex =
+        batchPayload.drawDataOffset +         // The starting draw data offset for the batch
+        instanceIndex;                        // Plus, offset by the instance index that was retrieved
+
+    // Record this sprite for drawing
+    o_drawDatas.data[drawDataIndex].spriteId = spriteInstanceData.spriteId;
+}
+
+bool ShouldBeDrawn(MeshPayload meshPayload, SpriteInstanceDataPayload instanceData)
+{
+    // TODO: Perf
+
+    return true;
+}

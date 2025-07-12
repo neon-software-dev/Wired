@@ -1,0 +1,27 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Joe @ NEON Software
+ *
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+ 
+#ifndef WIREDENGINE_WIREDGPU_INCLUDE_WIRED_GPU_GPUID_H
+#define WIREDENGINE_WIREDGPU_INCLUDE_WIRED_GPU_GPUID_H
+
+#include <NEON/Common/Id.h>
+
+namespace Wired::GPU
+{
+    DEFINE_INTEGRAL_ID_TYPE(CommandBufferId)
+    DEFINE_INTEGRAL_ID_TYPE(ImageId)
+    DEFINE_INTEGRAL_ID_TYPE(BufferId)
+    DEFINE_INTEGRAL_ID_TYPE(SamplerId)
+    DEFINE_INTEGRAL_ID_TYPE(PipelineId)
+}
+
+DEFINE_INTEGRAL_ID_HASH(Wired::GPU::CommandBufferId)
+DEFINE_INTEGRAL_ID_HASH(Wired::GPU::ImageId)
+DEFINE_INTEGRAL_ID_HASH(Wired::GPU::BufferId)
+DEFINE_INTEGRAL_ID_HASH(Wired::GPU::SamplerId)
+DEFINE_INTEGRAL_ID_HASH(Wired::GPU::PipelineId)
+
+#endif //WIREDENGINE_WIREDGPU_INCLUDE_WIRED_GPU_GPUID_H

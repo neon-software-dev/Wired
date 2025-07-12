@@ -1,0 +1,140 @@
+#version 450
+
+//
+// Internal
+//
+const uint MESH_MAX_LOD = 3;
+
+struct SpriteBatchPayload
+{
+    bool isValid;
+    uint meshId;
+    uint numMembers;
+    uint drawDataOffset;
+
+    uint lodInstanceCount;
+};
+
+struct MeshLODPayload
+{
+    bool isValid;
+
+    float renderDistance;
+
+    uint vertexOffset;
+    uint numIndices;
+    uint firstIndex;
+};
+
+struct MeshPayload
+{
+    bool hasCullAABB;
+    vec3 cullAABBMin;
+    vec3 cullAABBMax;
+    uint numBones;
+
+    MeshLODPayload lodData[MESH_MAX_LOD];
+};
+
+struct DrawInputParamsUniformPayload
+{
+    uint numBatches;
+};
+
+struct IndirectDrawCommand
+{
+    uint indexCount;
+    uint instanceCount;
+    uint firstIndex;
+    int vertexOffset;
+    uint firstInstance;
+};
+
+struct DrawCountPayload
+{
+    uint drawCount;
+};
+
+//
+// Inputs
+//
+layout(std430, set = 0, binding = 0) readonly buffer MeshPayloadBuffer
+{
+    MeshPayload data[];
+} i_meshPayloads;
+
+layout(std140, set = 2, binding = 0) uniform DrawInputParamsUniformPayloadBuffer
+{
+    DrawInputParamsUniformPayload data;
+} u_inputParams;
+
+//
+// Outputs
+//
+layout(std430, set = 1, binding = 0) buffer SpriteBatchPayloadBuffer
+{
+    SpriteBatchPayload data[];
+} o_batchData;
+
+layout(std430, set = 1, binding = 1) buffer IndirectDrawCommandBuffer
+{
+    IndirectDrawCommand data[];
+} o_drawCommands;
+
+layout(std430, set = 1, binding = 2) buffer DrawCountPayloadBuffer
+{
+    DrawCountPayload data[];
+} o_drawCounts;
+
+layout(local_size_x = 256,  local_size_y = 1,  local_size_z = 1) in;
+
+void main()
+{
+    if (gl_GlobalInvocationID.x >= u_inputParams.data.numBatches)
+    {
+        return;
+    }
+
+    const uint batchId = gl_GlobalInvocationID.x;
+
+    const SpriteBatchPayload batchData = o_batchData.data[batchId];
+    if (!batchData.isValid)
+    {
+        return;
+    }
+
+    const MeshPayload meshPayload = i_meshPayloads.data[batchData.meshId];
+
+    //
+    // Write draw commands
+    //
+    uint numWrittenDrawCommands = 0;
+
+    const uint instanceCount = batchData.lodInstanceCount;
+    if (instanceCount > 0)
+    {
+        uint lod = 0; // Sprite mesh only has one lod
+
+        const MeshLODPayload lodData = meshPayload.lodData[lod];
+
+        IndirectDrawCommand drawCommand;
+        drawCommand.indexCount = lodData.numIndices;
+        drawCommand.instanceCount = instanceCount,
+        drawCommand.firstIndex = lodData.firstIndex;
+        drawCommand.vertexOffset = int(lodData.vertexOffset);
+        drawCommand.firstInstance = batchData.drawDataOffset;
+
+        o_drawCommands.data[batchId] = drawCommand;
+        numWrittenDrawCommands++;
+    }
+
+    //
+    // Write the number of written draw commands to the draw counts buffer
+    //
+    o_drawCounts.data[batchId].drawCount = numWrittenDrawCommands;
+
+    //
+    // Reset batch lod instance count for the next sprite_cull flow to use
+    //
+    o_batchData.data[batchId].lodInstanceCount = 0;
+}

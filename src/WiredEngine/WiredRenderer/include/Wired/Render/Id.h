@@ -1,0 +1,37 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Joe @ NEON Software
+ *
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+ 
+#ifndef WIREDENGINE_WIREDRENDERER_INCLUDE_WIRED_RENDER_ID_H
+#define WIREDENGINE_WIREDRENDERER_INCLUDE_WIRED_RENDER_ID_H
+
+#include <Wired/GPU/GPUId.h>
+
+#include <NEON/Common/Id.h>
+
+namespace Wired::Render
+{
+    DEFINE_INTEGRAL_ID_TYPE(TextureId)
+    DEFINE_INTEGRAL_ID_TYPE(MeshId)
+    DEFINE_INTEGRAL_ID_TYPE(ShaderId)
+    DEFINE_INTEGRAL_ID_TYPE(MaterialId)
+    DEFINE_INTEGRAL_ID_TYPE(ComputePipelineId)
+    DEFINE_INTEGRAL_ID_TYPE(RenderableId)
+    DEFINE_INTEGRAL_ID_TYPE(ObjectId)
+    DEFINE_INTEGRAL_ID_TYPE(SpriteId)
+    DEFINE_INTEGRAL_ID_TYPE(LightId)
+}
+
+DEFINE_INTEGRAL_ID_HASH(Wired::Render::TextureId)
+DEFINE_INTEGRAL_ID_HASH(Wired::Render::MeshId)
+DEFINE_INTEGRAL_ID_HASH(Wired::Render::ShaderId)
+DEFINE_INTEGRAL_ID_HASH(Wired::Render::MaterialId)
+DEFINE_INTEGRAL_ID_HASH(Wired::Render::ComputePipelineId)
+DEFINE_INTEGRAL_ID_HASH(Wired::Render::RenderableId)
+DEFINE_INTEGRAL_ID_HASH(Wired::Render::ObjectId)
+DEFINE_INTEGRAL_ID_HASH(Wired::Render::SpriteId)
+DEFINE_INTEGRAL_ID_HASH(Wired::Render::LightId)
+
+#endif //WIREDENGINE_WIREDRENDERER_INCLUDE_WIRED_RENDER_ID_H
