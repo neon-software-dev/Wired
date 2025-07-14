@@ -61,14 +61,30 @@ int main(int, char *[])
 {
     using namespace Wired;
 
+    // Create an instance of the engine
     auto desktopEngine = Engine::DesktopEngine{};
-    if (!desktopEngine.Initialize("DemoApp" /* app name */ , {0,0,1} /* app version */, Engine::RunMode::Window))
+
+    // Initialize the engine
+    if (!desktopEngine.Initialize(
+        "DemoApp",                      /* Program name */
+        {0,0,1},                        /* Program version */
+        Engine::RunMode::Window         /* Support presenting to a window */
+    ))
     {
         return 1;
     }
 
-    desktopEngine.ExecWindowed("DemoApp" /* window name */, {1000,1000} /* window size */, std::make_unique<TestClient>());
+    // Execute the engine in a window
+    if (!desktopEngine.ExecWindowed(
+        "Demo Window",                  /* Window name */
+        {1000,1000},                    /* Window size */
+        std::make_unique<TestClient>()  /* Initial client to run */
+    ))
+    {
+        return 1;
+    }
 
+    // Optional, but nice
     desktopEngine.Destroy();
 
     return 0;
