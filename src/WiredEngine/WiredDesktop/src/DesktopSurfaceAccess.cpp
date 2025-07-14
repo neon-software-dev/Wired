@@ -105,7 +105,9 @@ void DesktopSurfaceAccess::StartImGuiFrame()
 
 void DesktopSurfaceAccess::DestroyImGuiForSurface()
 {
-    ImGui_ImplSDL3_Shutdown();
+    #ifdef WIRED_IMGUI
+        ImGui_ImplSDL3_Shutdown();
+    #endif
 }
 
 }

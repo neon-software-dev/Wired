@@ -171,9 +171,9 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
 }
 
 FragLightingParameters GetFragLightingParameters(PBRMaterialPayload materialPayload);
-vec3 CalculateLightRadiance(ObjectInstanceDataPayload instanceData, PBRMaterialPayload materialPayload, LightPayload lightData, FragLightingParameters lightingParams, mat3 normalTransform);
+vec3 CalculateLightRadiance(ObjectInstanceDataPayload instanceData, PBRMaterialPayload materialPayload, LightPayload lightData, FragLightingParameters lightingParams, mat3 modelToWorldNormalTransform, mat3 worldToViewNormalTransform);
 float CalculateLightAttenuation(LightPayload lightData, float fragToLight_distance);
-vec3 GetFragmentNormalWorldSpace(PBRMaterialPayload materialPayload, mat4 modelTransform);
+vec3 GetFragmentNormalWorldSpace(PBRMaterialPayload materialPayload, mat3 modelToWorldNormalTransform);
 bool CanLightAffectFragment(LightPayload light, vec3 fragPosition_worldSpace);
 float GetFragShadowLevel(LightPayload lightData, vec3 fragPosition_viewSpace, vec3 fragPosition_worldSpace);
 
@@ -256,7 +256,11 @@ void main()
         discard;
     }
 
-    const mat3 normalTransform = mat3(transpose(inverse(u_viewProjectionData.data.viewTransform)));
+    // Converts a model-space normal to a world-space normal
+    const mat3 modelToWorldNormalTransform = transpose(inverse(mat3(instanceDataPayload.modelTransform)));
+
+    // Converts a world-space normal to a view-space normal
+    const mat3 worldToViewNormalTransform = transpose(inverse(mat3(u_viewProjectionData.data.viewTransform)));
 
     vec3 totalLo = vec3(0.0);
 
@@ -273,7 +277,7 @@ void main()
             continue;
         }
 
-        totalLo += CalculateLightRadiance(instanceDataPayload, materialPayload, lightPayload, lightingParams, normalTransform);
+        totalLo += CalculateLightRadiance(instanceDataPayload, materialPayload, lightPayload, lightingParams, modelToWorldNormalTransform, worldToViewNormalTransform);
     }
 
     const vec3 ambient = u_globalData.data.ambientLight * lightingParams.albedo.xyz * lightingParams.ao;
@@ -293,23 +297,29 @@ void main()
     o_fragColor = vec4(color, lightingParams.albedo.a);
 }
 
-vec3 CalculateLightRadiance(ObjectInstanceDataPayload instanceData, PBRMaterialPayload materialPayload, LightPayload lightData, FragLightingParameters lightingParams, mat3 normalTransform)
+vec3 CalculateLightRadiance(
+    ObjectInstanceDataPayload instanceData,
+    PBRMaterialPayload materialPayload,
+    LightPayload lightData,
+    FragLightingParameters lightingParams,
+    mat3 modelToWorldNormalTransform,
+    mat3 worldToViewNormalTransform)
 {
     const vec3 fragPos_worldSpace = i_fragPos_worldSpace;
     const vec3 fragPos_viewSpace = (u_viewProjectionData.data.viewTransform * vec4(i_fragPos_worldSpace, 1.0f)).xyz;
 
     // Calculate whether the fragment is in shadow from the light
-    //const float fragShadowLevel = 0.0f;
-    const float fragShadowLevel = GetFragShadowLevel(lightData, fragPos_viewSpace, fragPos_worldSpace);
+    const float fragShadowLevel = 0.0f;
+    //const float fragShadowLevel = GetFragShadowLevel(lightData, fragPos_viewSpace, fragPos_worldSpace);
 
     // If the fragment is in full shadow from the light, the light doesn't affect it, bail out early
-    if (abs(fragShadowLevel - 1.0) < EPSILON)
+    if (abs(fragShadowLevel - 1.0f) < EPSILON)
     {
         return vec3(0,0,0);
     }
 
-    const vec3 fragNormal_worldSpace = GetFragmentNormalWorldSpace(materialPayload, instanceData.modelTransform);
-    const vec3 fragNormal_viewSpaceUnit = normalize(normalTransform * fragNormal_worldSpace).xyz;
+    const vec3 fragNormal_worldSpaceUnit = GetFragmentNormalWorldSpace(materialPayload, modelToWorldNormalTransform);
+    const vec3 fragNormal_viewSpaceUnit = normalize(worldToViewNormalTransform * fragNormal_worldSpaceUnit);
 
     const vec3 cameraPos_viewSpace = vec3(0,0,0);
 
@@ -326,11 +336,9 @@ vec3 CalculateLightRadiance(ObjectInstanceDataPayload instanceData, PBRMaterialP
     if (lightData.lightType == LIGHT_TYPE_DIRECTIONAL)
     {
         // Directional lights are considered to be infinitely far away with parallel rays, and thus
-        // we ignore the position the light is at and just use the opposite of the light's direction
-        // as the direction to the light. Also applying the normal matrix to convert the direction
-        // vector from world space to view space, so that translation/scale in the view transform
-        // doesn't impact the direction vector, only camera rotation.
-        fragToLight_viewSpaceUnit = normalize(normalTransform * -lightData.directionUnit);
+        // we ignore the light's position and just use the opposite of the light's direction as the
+        // direction to the light.
+        fragToLight_viewSpaceUnit = normalize(worldToViewNormalTransform * -lightData.directionUnit);
 
         // However, we DO use the light's position for attenuation purposes. Note that the typical
         // denominator in the ray/plane intersection is 1 in this case, and so is ignored
@@ -442,22 +450,24 @@ FragLightingParameters GetFragLightingParameters(PBRMaterialPayload materialPayl
     return params;
 }
 
-vec3 GetFragmentNormalWorldSpace(PBRMaterialPayload materialPayload, mat4 modelTransform)
+vec3 GetFragmentNormalWorldSpace(PBRMaterialPayload materialPayload, mat3 modelToWorldNormalTransform)
 {
     if (!materialPayload.hasNormalSampler)
     {
-        // If the material doesn't have a normal texture, then we just use the model-space
-        // normal that was provided by the vertex shader
-        return normalize((modelTransform * vec4(i_fragNormal_modelSpace, 0.0f)).xyz);
+        // If the material doesn't have a normal texture, then we just use the output
+        // normal that was provided by the vertex shader, which needs to be converted
+        // from model space to world space
+        return normalize(modelToWorldNormalTransform * i_fragNormal_modelSpace);
     }
     else
     {
-        // Otherwise, read the normal from the normal texture
+        // Otherwise, read the normal from the normal texture, which is in tangent space
         vec3 normalMapValue = texture(i_normalSampler, i_fragTexCoord).rgb;
 
-        // Convert from RGB space [0..1] to 3D space [-1..1]
+        // Convert the value from from RGB [0..1] to 3D [-1..1]
         normalMapValue = (normalMapValue * 2.0) - 1.0;
 
+        // Use the TBN normal transform to convert the value to world space
         return normalize(i_tbnNormalTransform * normalMapValue);
     }
 }

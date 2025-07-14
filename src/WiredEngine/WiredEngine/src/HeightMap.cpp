@@ -8,6 +8,7 @@
 
 #include <Wired/Render/AABB.h>
 #include <Wired/Render/Mesh/StaticMeshData.h>
+#include <Wired/Render/VectorUtil.h>
 
 #include <NEON/Common/MapValue.h>
 
@@ -70,21 +71,15 @@ std::unique_ptr<Render::MeshData> GenerateHeightMapMeshData(const HeightMap* pHe
 
     // Current world position of the vertex we're processing. Start at the back left corner of the mesh.
     float xPos = -1.0f * meshSize_worldSpace.w / 2.0f;
-    float zPos = 1.0f * meshSize_worldSpace.h / 2.0f;
+    float zPos = -1.0f * meshSize_worldSpace.h / 2.0f;
 
     // Loop over data points in the height map and create a vertex for each
     for (std::size_t y = 0; y < pHeightMap->dataSize.h; ++y)
     {
         for (std::size_t x = 0; x < pHeightMap->dataSize.w; ++x)
         {
-            // The height map data is stored with the "top" row of the height map image in the start of the
-            // vector. As we're building our vertices starting from the bottom left, flip the Y coordinate so
-            // the bottom left vertex is getting its data from the end of the vector, where the bottom height map
-            // row is.
-            const auto flippedY = (pHeightMap->dataSize.h - 1) - y;
-
             // Index of this vertex's height map data entry
-            const auto dataIndex = x + (flippedY * pHeightMap->dataSize.w);
+            const auto dataIndex = x + (y * pHeightMap->dataSize.w);
 
             const auto position = glm::vec3(xPos, pHeightMap->data[dataIndex], zPos);
 
@@ -109,7 +104,7 @@ std::unique_ptr<Render::MeshData> GenerateHeightMapMeshData(const HeightMap* pHe
                 // Set the UVs to cleanly span the entire height map
 
                 uvX = (float)x / ((float)pHeightMap->dataSize.w - 1);
-                uvY = (float)flippedY / ((float)pHeightMap->dataSize.h - 1);
+                uvY = (float)y / ((float)pHeightMap->dataSize.h - 1);
             }
 
             const auto uv = glm::vec2(uvX, uvY);
@@ -123,7 +118,7 @@ std::unique_ptr<Render::MeshData> GenerateHeightMapMeshData(const HeightMap* pHe
         }
 
         xPos = -1.0f * meshSize_worldSpace.w / 2.0f;
-        zPos -= vertexZDelta;
+        zPos += vertexZDelta;
     }
 
     // Loop over vertices and calculate normals from looking at neighboring vertices
@@ -139,43 +134,40 @@ std::unique_ptr<Render::MeshData> GenerateHeightMapMeshData(const HeightMap* pHe
 
             const bool isLeftEdgeVertex = x == 0;
             const bool isRightEdgeVertex = x == (pHeightMap->dataSize.w - 1);
-            const bool isBottomEdgeVertex = y == 0;
-            const bool isTopEdgeVertex = y == (pHeightMap->dataSize.h - 1);
+            const bool isFrontEdgeVertex = y == (pHeightMap->dataSize.w - 1);
+            const bool isBackEdgeVertex = y == 0;
 
             // Get the positions of the vertices to all four sides of this vertex. If some don't exist
             // because the vertex is on an edge, just default them to the center vertex's position.
             glm::vec3 leftVertexPosition = centerPosition;
             glm::vec3 rightVertexPosition = centerPosition;
-            glm::vec3 upVertexPosition = centerPosition;
-            glm::vec3 bottomVertexPosition = centerPosition;
+            glm::vec3 frontVertexPosition = centerPosition;
+            glm::vec3 backVertexPosition = centerPosition;
 
             if (!isLeftEdgeVertex)
             {
                 leftVertexPosition = vertices[dataIndex - 1].position;
             }
-            if (!isBottomEdgeVertex)
-            {
-                bottomVertexPosition = vertices[dataIndex - pHeightMap->dataSize.w].position;
-            }
             if (!isRightEdgeVertex)
             {
                 rightVertexPosition = vertices[dataIndex + 1].position;
             }
-            if (!isTopEdgeVertex)
+            if (!isFrontEdgeVertex)
             {
-                upVertexPosition = vertices[dataIndex + pHeightMap->dataSize.w].position;
+                frontVertexPosition = vertices[dataIndex + pHeightMap->dataSize.w].position;
+            }
+            if (!isBackEdgeVertex)
+            {
+                backVertexPosition = vertices[dataIndex - pHeightMap->dataSize.w].position;
             }
 
             // Calculate vectors that point left to right and back to front across the center vertex
-            const glm::vec3 dx = rightVertexPosition - leftVertexPosition;
-            const glm::vec3 dz = bottomVertexPosition - upVertexPosition;
+            const glm::vec3 dxUnit = glm::normalize(leftVertexPosition - rightVertexPosition);
+            const glm::vec3 dzUnit = glm::normalize(frontVertexPosition - backVertexPosition);
 
-            // Center vertex normal is the normalized cross product of these vectors. (also handle the
-            // case where dx or dz is zero)
-            auto normal = glm::cross(dz, dx);
-            if (glm::length(normal) > std::numeric_limits<float>::epsilon())
+            if (!Render::AreUnitVectorsParallel(dxUnit, dzUnit))
             {
-                vertices[dataIndex].normal = glm::normalize(glm::cross(dz, dx));
+                vertices[dataIndex].normal = glm::normalize(glm::cross(dxUnit, dzUnit));
             }
             else
             {
@@ -193,13 +185,13 @@ std::unique_ptr<Render::MeshData> GenerateHeightMapMeshData(const HeightMap* pHe
 
             // triangle 1
             indices.push_back(dataIndex);
+            indices.push_back(dataIndex + pHeightMap->dataSize.h);
             indices.push_back(dataIndex + 1);
-            indices.push_back(dataIndex + pHeightMap->dataSize.w);
 
             // triangle 2
             indices.push_back(dataIndex + 1);
-            indices.push_back(dataIndex + pHeightMap->dataSize.w + 1);
-            indices.push_back(dataIndex + pHeightMap->dataSize.w);
+            indices.push_back(dataIndex + pHeightMap->dataSize.h);
+            indices.push_back(dataIndex + pHeightMap->dataSize.h + 1);
         }
     }
 

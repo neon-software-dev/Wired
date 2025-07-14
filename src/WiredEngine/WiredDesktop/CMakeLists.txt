@@ -16,8 +16,8 @@ target_link_libraries(WiredDesktop
 	PUBLIC
 		NEONCommon
 		WiredEngine
-		SDL3::SDL3
 	PRIVATE
+		SDL3::SDL3
 		WiredGPUVk
 		WiredPlatformSDL
 )
