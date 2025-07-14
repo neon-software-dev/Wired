@@ -45,7 +45,7 @@ A sample client can be found at the link below. It's a minimal example of using 
 
 If you want to use package loading functionality to load assets from disk (```LoadPackageResources```), a sample package structure can be found at the link below. A ```wired``` directory with the indicated structure should be present in the runtime directory of your executable.
 
-(Note that models must be in their own subdirectory under assets/models, with the directory name matching the model file name, as shown).
+*(Note that models must be in their own subdirectory under assets/models, with the directory name matching the model file name, as demonstrated in the sample package).*
 
 [Sample Package](https://github.com/neon-software-dev/Wired/blob/main/samples/PackageSample)
   
