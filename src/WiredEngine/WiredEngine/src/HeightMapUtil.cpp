@@ -15,10 +15,8 @@ namespace Wired::Engine
 
 static inline float GetHeightMapValue(const LoadedHeightMap* pLoadedHeightMap, unsigned int colIndex, unsigned int rowIndex)
 {
-    const auto inverseRowIndex = pLoadedHeightMap->heightMap->dataSize.h - rowIndex - 1;
-
     return dynamic_cast<Render::StaticMeshData*>(pLoadedHeightMap->meshData.get())
-        ->vertices[colIndex + (inverseRowIndex * pLoadedHeightMap->heightMap->dataSize.w)].position.y;
+        ->vertices[colIndex + (rowIndex * pLoadedHeightMap->heightMap->dataSize.w)].position.y;
 }
 
 static glm::vec2 ModelPointToDataPoint(const LoadedHeightMap* pLoadedHeightMap, const glm::vec2& modelSpacePoint)
@@ -62,9 +60,7 @@ static std::array<glm::vec3, 3> GetClosestTrianglePoints(const LoadedHeightMap* 
     const float dx = dataSpacePoint.x - (float)topLeftDataPoint.first;
     const float dy = dataSpacePoint.y - (float)topLeftDataPoint.second;
 
-    std::array<std::pair<unsigned int, unsigned>, 3> triDataPoints{};
-    triDataPoints[0] = topLeftDataPoint;
-    triDataPoints[1] = bottomRightDataPoint;
+    std::array<std::pair<unsigned int, unsigned>, 3> triDataPoints;
 
     const bool isLowerTriangle = dy > dx;
 
