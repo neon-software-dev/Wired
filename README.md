@@ -14,6 +14,10 @@ The Wired Renderer currently ships with a Vulkan-based GPU implementation.
 ![Alt text](screenshots/collage.webp "Collage")
 *A collage of test scenes rendered with the Wired engine*
 
+## Tech Demo Video
+
+[![Tech Demo Video](https://img.youtube.com/vi/R-enitNsDyU/mqdefault.jpg)](https://youtu.be/R-enitNsDyU)
+
 ## High-Level Features
 
 - Cross Platform
