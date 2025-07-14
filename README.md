@@ -9,6 +9,9 @@ Wired is a cross-platform, C++23, game and render engine.
 
 The project includes a Vulkan 1.3 implementation of the Wired GPU abstraction.
 
+![Alt text](screenshots/collage.webp "Collage")
+*A collage of test scenes rendered with the Wired engine*
+
 ## High-Level Features
 
 - Cross Platform
