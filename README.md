@@ -66,13 +66,13 @@ The engine is defined by a typical CMake project, located in src.
 
 The ```external/prepare_dependencies.[sh/bat]``` helper script uses vcpkg to fetch the engine's dependencies. It will create a local vcpkg repo and install the engine's dependencies into it.
 
-Either use the prepare_dependencies script or provide dependencies manually to CMake later via your own means.
+Either use the ```prepare_dependencies``` script or provide dependencies manually to CMake later via your own means.
 
 The ```CMakePresets.json``` file defines configurations for typical build presets. Preset names follow the pattern: ```desktop-[debug/release/distro]-[windows/linux]```.
 
 Set ```BUILD_SHARED_LIBS ON/OFF``` for whether to build Wired as shared or static libraries.
 
 **Sample CMake invocation:**
-``` cmake src --preset desktop-debug-linux -DBUILD_SHARED_LIBS=OFF ```
+```cmake src --preset desktop-distro-linux -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/install/location```
 
 See also: The ```build.sh``` script, which does the above for you.
