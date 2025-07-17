@@ -86,6 +86,24 @@ void AudioView(const Engine::Package& package, AssetsWindowVM* vm)
     ImGui::EndChild();
 }
 
+void FontsView(const Engine::Package& package, AssetsWindowVM* vm)
+{
+    const auto selectedAsset = vm->GetSelectedAsset();
+    const bool isAssetTypeSelected = selectedAsset && selectedAsset->assetType == Engine::AssetType::Font;
+
+    ImGui::BeginChild("FontsAssetList", ImVec2(0,0), ImGuiChildFlags_FrameStyle);
+    for (const auto& assetName : package.assetNames.fontAssetNames)
+    {
+        const bool assetIsSelected = isAssetTypeSelected && (selectedAsset->assetName == assetName);
+
+        if (ImGui::Selectable(assetName.c_str(), assetIsSelected))
+        {
+            vm->SetSelectedAsset(SelectedAsset{.assetType = Engine::AssetType::Font, .assetName = assetName});
+        }
+    }
+    ImGui::EndChild();
+}
+
 void AssetTypeTabs(const Engine::Package& package, AssetsWindowVM* vm)
 {
     if (ImGui::BeginTabBar("AssetTypes"))
@@ -108,6 +126,11 @@ void AssetTypeTabs(const Engine::Package& package, AssetsWindowVM* vm)
         if (ImGui::BeginTabItem("Audio"))
         {
             AudioView(package, vm);
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Fonts"))
+        {
+            FontsView(package, vm);
             ImGui::EndTabItem();
         }
 

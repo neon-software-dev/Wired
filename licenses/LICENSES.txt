@@ -8,6 +8,11 @@ License: Zlib
 Attribution: Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
 Link: https://github.com/libsdl-org/SDL_image/	
 
+[sdl3-ttf]
+License: Zlib
+Attribution: Copyright (C) 1997-2025 Sam Lantinga <slouken@libsdl.org>
+Link: https://github.com/libsdl-org/SDL_ttf
+
 [spirv-reflect]
 License: Apache 2.0
 Attribution: The Khronos Group Inc.

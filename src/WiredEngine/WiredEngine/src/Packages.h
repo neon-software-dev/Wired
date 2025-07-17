@@ -73,6 +73,7 @@ namespace Wired::Engine
                 std::shared_ptr<std::unordered_map<std::string, std::vector<std::byte>>> imageAssets;
                 std::shared_ptr<std::unordered_map<std::string, std::vector<std::byte>>> shaderAssets;
                 std::shared_ptr<std::unordered_map<std::string, std::vector<std::byte>>> audioAssets;
+                std::shared_ptr<std::unordered_map<std::string, std::vector<std::byte>>> fontAssets;
             };
 
         private:
@@ -83,6 +84,7 @@ namespace Wired::Engine
             void LoadPackageShaders(const LoadedPackageData& loadedPackageData, PackageResources& packageResources) const;
             void LoadPackageModels(IPackageSource const* packageSource, PackageResources& packageResources) const;
             void LoadPackageAudio(IPackageSource const* packageSource, const LoadedPackageData& loadedPackageData, PackageResources& packageResources) const;
+            void LoadPackageFonts(IPackageSource const* packageSource, const LoadedPackageData& loadedPackageData, PackageResources& packageResources) const;
 
             [[nodiscard]] std::expected<std::unordered_map<std::string, std::unique_ptr<NCommon::ImageData>>, bool>
             LoadModelExternalTextures(IPackageSource const* packageSource, const std::string& modelAssetName, Model const* pModel) const;

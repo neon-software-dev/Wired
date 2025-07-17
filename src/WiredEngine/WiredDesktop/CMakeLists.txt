@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.26.4)
 project(WiredDesktop VERSION 0.0.1 LANGUAGES CXX)
 
 	find_package(SDL3 CONFIG REQUIRED)
+	find_package(SDL3_ttf CONFIG REQUIRED)
 
 	file(GLOB WiredDesktop_PublicIncludes CONFIGURE_DEPENDS include/Wired/Engine/*.h)
 	file(GLOB WiredDesktop_SourceFiles CONFIGURE_DEPENDS src/*.cpp src/*.h)
@@ -18,6 +19,7 @@ target_link_libraries(WiredDesktop
 		WiredEngine
 	PRIVATE
 		SDL3::SDL3
+		$<IF:$<TARGET_EXISTS:SDL3_ttf::SDL3_ttf>,SDL3_ttf::SDL3_ttf,SDL3_ttf::SDL3_ttf-static>
 		WiredGPUVk
 		WiredPlatformSDL
 )
@@ -32,6 +34,7 @@ target_compile_features(WiredDesktop
 target_compile_options(WiredDesktop
 	PRIVATE
 		${WIRED_WARNINGS_FLAGS}
+		${WIRED_LIBRARY_FLAGS}
 )
 
 target_include_directories(WiredDesktop

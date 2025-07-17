@@ -80,12 +80,13 @@ bool WorldState::StartUp()
 
     CreateWorldSystems();
 
-    return true;
-}
+    // RendererSyncer is a fake/unique system which is stored here as a kind-of system, but it doesn't get executed with
+    // the other systems; it only gets run when a new frame render needs to happen, so it isn't executed on sim steps
+    // like other systems might
+    m_rendererSyncer = std::make_unique<RendererSyncer>(m_pLogger, m_pResources, m_pRenderer, m_worldName);
+    m_rendererSyncer->Initialize(m_registry);
 
-void WorldState::Destroy()
-{
-    m_pPhysics->ShutDown();
+    return true;
 }
 
 void WorldState::CreateWorldSystems()
@@ -98,30 +99,17 @@ void WorldState::CreateWorldSystems()
     {
         system.second->Initialize(m_registry);
     }
-
-    // RendererSyncer is a fake/unique system which is stored here as a system, but it doesn't get executed with the
-    // other systems; it only gets run when a new frame render needs to happen, so it isn't executed on sim steps
-    // like other systems might
-    m_rendererSyncer = std::make_unique<RendererSyncer>(m_pLogger, m_pResources, m_pRenderer, m_worldName);
-    m_rendererSyncer->Initialize(m_registry);
 }
 
 void WorldState::Reset()
 {
-    // Note that it only resets state specific to WorldState; dependencies that are passed in such
-    // as Resources isn't touched
+    m_registry.clear();
 
-    // Tear down state
     for (auto& system: m_systems)
     {
-        system.second->Destroy(m_registry);
+        system.second->Reset(m_registry);
     }
-    m_systems.clear();
 
-    m_rendererSyncer->Destroy(m_registry);
-    m_rendererSyncer = nullptr;
-
-    m_registry = {};
     m_pPhysics->Reset();
 
     m_cameraIds.Reset();
@@ -133,9 +121,28 @@ void WorldState::Reset()
     m_skyBoxTransform = std::nullopt;
 
     m_executingSystem = std::nullopt;
+}
 
-    // Recreate fresh world systems
-    CreateWorldSystems();
+void WorldState::Destroy()
+{
+    m_registry.clear();
+
+    for (auto& system: m_systems)
+    {
+        system.second->Destroy(m_registry);
+    }
+
+    m_pPhysics->ShutDown();
+
+    m_cameraIds.Reset();
+    m_defaultCamera3DId = {};
+    m_defaultCamera2DId = {};
+    m_cameras.clear();
+
+    m_skyBoxTextureId = std::nullopt;
+    m_skyBoxTransform = std::nullopt;
+
+    m_executingSystem = std::nullopt;
 }
 
 CameraId WorldState::CreateCamera(CameraType type)

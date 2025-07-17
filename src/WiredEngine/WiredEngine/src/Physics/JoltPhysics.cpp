@@ -208,11 +208,6 @@ void JoltPhysics::ShutDown()
 void JoltPhysics::Reset()
 {
     m_pLogger->Info("JoltPhysics: Resetting");
-
-    while (!m_scenes.empty())
-    {
-        DestroyPhysicsScene(m_scenes.cbegin()->first);
-    }
 }
 
 std::optional<JoltScene*> JoltPhysics::GetPhysicsScene(const PhysicsSceneName& scene) const

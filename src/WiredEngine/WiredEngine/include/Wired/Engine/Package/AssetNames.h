@@ -18,6 +18,7 @@ namespace Wired::Engine
         std::vector<std::string> shaderAssetNames;
         std::vector<std::string> modelAssetNames;
         std::vector<std::string> audioAssetNames;
+        std::vector<std::string> fontAssetNames;
     };
 }
 

@@ -705,7 +705,7 @@ std::vector<std::shared_ptr<EngineRenderTask>> WiredEngine::GetDefaultRenderTask
     auto renderDefaultWorldTask = std::make_shared<EngineRenderWorldTask>();
     renderDefaultWorldTask->worldName = DEFAULT_WORLD_NAME;
     renderDefaultWorldTask->targetColorTextureIds = {m_pRunState->offscreenColorTextureId};
-    renderDefaultWorldTask->clearColor = {0.3f, 0.4f, 0.5f};
+    renderDefaultWorldTask->clearColor = {0.0f, 0.0f, 0.0f};
     renderDefaultWorldTask->targetDepthTextureId = {m_pRunState->offscreenDepthTextureId};
 
     tasks.push_back(renderDefaultWorldTask);

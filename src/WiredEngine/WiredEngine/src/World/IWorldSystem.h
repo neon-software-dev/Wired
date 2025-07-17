@@ -37,6 +37,7 @@ namespace Wired::Engine
             [[nodiscard]] virtual Type GetType() const noexcept = 0;
 
             virtual void Initialize(entt::basic_registry<EntityId>& registry) { (void)registry; };
+            virtual void Reset(entt::basic_registry<EntityId>& registry) { (void)registry; };
             virtual void Destroy(entt::basic_registry<EntityId>& registry) { (void)registry; };
 
             virtual void Execute(RunState* pRunState,

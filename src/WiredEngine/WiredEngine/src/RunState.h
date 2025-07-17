@@ -47,6 +47,7 @@ namespace Wired::Engine
     class Packages;
     class WorkThreadPool;
     class AudioManager;
+    class FontManager;
 
     /**
      * Holds all run-specific state for a given run of the engine
@@ -89,6 +90,7 @@ namespace Wired::Engine
             //
                 std::unique_ptr<WorkThreadPool> pWorkThreadPool;
                 std::unique_ptr<AudioManager> pAudioManager;
+                std::unique_ptr<FontManager> pFontManager;
                 std::unique_ptr<Resources> pResources;
                 std::unique_ptr<Packages> pPackages;
 

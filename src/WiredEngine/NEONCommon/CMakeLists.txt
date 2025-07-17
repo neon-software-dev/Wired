@@ -46,6 +46,7 @@ target_compile_features(NEONCommon
 target_compile_options(NEONCommon
 	PRIVATE
 		${WIRED_WARNINGS_FLAGS}
+		${WIRED_LIBRARY_FLAGS}
 )
 
 target_include_directories(NEONCommon

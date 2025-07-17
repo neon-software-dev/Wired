@@ -92,6 +92,7 @@ std::string GetDirectoryNameForAssetType(const AssetType& assetType)
         case AssetType::Shader:  return PACKAGE_ASSETS_SHADERS_DIRECTORY;
         case AssetType::Model:  return PACKAGE_ASSETS_MODELS_DIRECTORY;
         case AssetType::Audio:  return PACKAGE_ASSETS_AUDIO_DIRECTORY;
+        case AssetType::Font:  return PACKAGE_ASSETS_FONTS_DIRECTORY;
     }
 
     assert(false);
@@ -155,6 +156,9 @@ std::expected<Package, bool> ReadPackageMetadataFromDisk(NCommon::ILogger* pLogg
 
     const auto audioDirectoryPath = GetDirectoryPathForAssetType(packageDirectoryPath, AssetType::Audio);
     const bool hasAudioDirectory = std::filesystem::is_directory(audioDirectoryPath, ec);
+
+    const auto fontDirectoryPath = GetDirectoryPathForAssetType(packageDirectoryPath, AssetType::Font);
+    const bool hasFontDirectory = std::filesystem::is_directory(fontDirectoryPath, ec);
 
     const auto scenesDirectory = packageDirectoryPath / PACKAGE_SCENES_DIRECTORY;
     const bool hasScenesDirectory = std::filesystem::is_directory(scenesDirectory, ec);
@@ -230,6 +234,17 @@ std::expected<Package, bool> ReadPackageMetadataFromDisk(NCommon::ILogger* pLogg
             return std::unexpected(false);
         }
         package.assetNames.audioAssetNames = *audioAssetNames;
+    }
+
+    if (hasFontDirectory)
+    {
+        const auto fontAssetNames = GetFileNamesInDirectory(fontDirectoryPath);
+        if (!fontAssetNames)
+        {
+            pLogger->Error("ReadPackageMetadataFromDisk: Failed to list files in assets font directory");
+            return std::unexpected(false);
+        }
+        package.assetNames.fontAssetNames = *fontAssetNames;
     }
 
     if (hasScenesDirectory)

@@ -21,12 +21,14 @@
 #include <Wired/Platform/SDLWindow.h>
 #include <Wired/Platform/SDLEvents.h>
 #include <Wired/Platform/SDLImage.h>
+#include <Wired/Platform/SDLText.h>
 
 #include <NEON/Common/Log/StdLogger.h>
 #include <NEON/Common/Metrics/InMemoryMetrics.h>
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_vulkan.h>
+#include <SDL3_ttf/SDL_ttf.h>
 
 #include <algorithm>
 
@@ -62,10 +64,11 @@ PFN_vkGetInstanceProcAddr GetSDLVulkanGetInstanceProcAddr()
 
 bool DesktopEngine::Initialize(const std::string& applicationName,
                                const std::tuple<uint32_t, uint32_t, uint32_t>& applicationVersion,
-                               RunMode runMode)
+                               RunMode runMode,
+                               NCommon::LogLevel minlogLevel)
 {
     m_runMode = runMode;
-    m_logger = std::make_unique<NCommon::StdLogger>(NCommon::LogLevel::Warning);
+    m_logger = std::make_unique<NCommon::StdLogger>(minlogLevel);
     m_metrics = std::make_unique<NCommon::InMemoryMetrics>();
 
     //
@@ -74,6 +77,12 @@ bool DesktopEngine::Initialize(const std::string& applicationName,
     if (!SDL_Init(SDL_INIT_VIDEO))
     {
         m_logger->Fatal("DesktopEngine::StartUp: Failed to init SDL Video system");
+        return false;
+    }
+
+    if (!TTF_Init())
+    {
+        m_logger->Fatal("DesktopEngine::StartUp: Failed to init SDL TTF system");
         return false;
     }
 
@@ -175,7 +184,8 @@ bool ExecWithWindow(NCommon::ILogger* pLogger,
     auto desktopFiles = std::make_unique<Platform::DesktopFiles>(pLogger);
     auto events = std::make_unique<Platform::SDLEvents>(pRenderer);
     auto image = std::make_unique<Platform::SDLImage>(pLogger);
-    auto platform = std::make_unique<Platform::Platform>(window, std::move(events), std::move(desktopFiles), std::move(image));
+    auto text = std::make_unique<Platform::SDLText>(pLogger);
+    auto platform = std::make_unique<Platform::Platform>(window, std::move(events), std::move(desktopFiles), std::move(image), std::move(text));
 
     //
     // Create the engine and execute it, giving it thread control
@@ -284,10 +294,11 @@ bool DesktopEngine::ExecHeadless(std::unique_ptr<Client> pClient)
     // Setup platform systems
     //
     auto desktopFiles = std::make_unique<Platform::DesktopFiles>(m_logger.get());
+    auto window = std::make_shared<Platform::SDLWindow>(m_logger.get());
     auto events = std::make_unique<Platform::SDLEvents>( m_renderer.get());
     auto image = std::make_unique<Platform::SDLImage>(m_logger.get());
-    auto window = std::make_shared<Platform::SDLWindow>(m_logger.get());
-    auto platform = std::make_unique<Platform::Platform>(window, std::move(events), std::move(desktopFiles), std::move(image));
+    auto text = std::make_unique<Platform::SDLText>(m_logger.get());
+    auto platform = std::make_unique<Platform::Platform>(window, std::move(events), std::move(desktopFiles), std::move(image), std::move(text));
 
     //
     // Create the engine and execute it, giving it thread control
@@ -307,8 +318,10 @@ void DesktopEngine::Destroy()
         m_gpu = nullptr;
     }
 
-    // Unload Vulkan
+    // Unload/quit SDL systems
     SDL_Vulkan_UnloadLibrary();
+    TTF_Quit();
+    SDL_Quit();
 
     m_initialized = false;
     m_runMode = {};

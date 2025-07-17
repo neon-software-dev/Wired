@@ -10,6 +10,7 @@
 #include <Wired/Engine/Client.h>
 
 #include <NEON/Common/SharedLib.h>
+#include <NEON/Common/Log/ILogger.h>
 
 #include <string>
 #include <utility>
@@ -19,7 +20,6 @@
 
 namespace NCommon
 {
-    class ILogger;
     class IMetrics;
 }
 
@@ -52,7 +52,8 @@ namespace Wired::Engine
 
             [[nodiscard]] bool Initialize(const std::string& applicationName,
                                           const std::tuple<uint32_t, uint32_t, uint32_t>& applicationVersion,
-                                          RunMode runMode);
+                                          RunMode runMode,
+                                          NCommon::LogLevel minlogLevel = NCommon::LogLevel::Warning);
             void Destroy();
 
             //

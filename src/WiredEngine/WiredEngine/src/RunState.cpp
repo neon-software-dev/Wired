@@ -13,6 +13,8 @@
 
 #include "Audio/AudioManager.h"
 
+#include "Font/FontManager.h"
+
 #include "World/WorldState.h"
 
 #include <Wired/Engine/Client.h>
@@ -27,7 +29,8 @@ namespace Wired::Engine
 RunState::RunState(NCommon::ILogger* pLogger, NCommon::IMetrics* pMetrics, Render::IRenderer* pRenderer, Platform::IPlatform* pPlatform)
     : pWorkThreadPool(std::make_unique<WorkThreadPool>(std::thread::hardware_concurrency()))
     , pAudioManager(std::make_unique<AudioManager>(pLogger, pMetrics))
-    , pResources(std::make_unique<Resources>(pLogger, pPlatform, pAudioManager.get(), pRenderer))
+    , pFontManager(std::make_unique<FontManager>(pLogger, pMetrics, pPlatform->GetText()))
+    , pResources(std::make_unique<Resources>(pLogger, pPlatform, pAudioManager.get(), pFontManager.get(), pRenderer))
     , pPackages(std::make_unique<Packages>(pLogger, pWorkThreadPool.get(), pResources.get(), pPlatform, pRenderer))
     , m_pLogger(pLogger)
     , m_pMetrics(pMetrics)
@@ -40,6 +43,7 @@ RunState::~RunState()
 {
     pWorkThreadPool = nullptr;
     pAudioManager = nullptr;
+    pFontManager = nullptr;
     pResources = nullptr;
     pPackages = nullptr;
     pClient = nullptr;
@@ -53,6 +57,12 @@ bool RunState::StartUp()
     if (!pAudioManager->Startup())
     {
         m_pLogger->Error("RunState::StartUp: Failed to start audio manager");
+        return false;
+    }
+
+    if (!pFontManager->Startup())
+    {
+        m_pLogger->Error("RunState::StartUp: Failed to start font manager");
         return false;
     }
 
@@ -72,6 +82,7 @@ void RunState::ShutDown()
     worlds.clear();
     pPackages->ShutDown();
     pResources->ShutDown();
+    pFontManager->Shutdown();
     pAudioManager->Shutdown();
 
     JoltPhysics::StaticDestroy();

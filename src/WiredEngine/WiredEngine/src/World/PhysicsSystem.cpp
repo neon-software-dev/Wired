@@ -42,11 +42,6 @@ void PhysicsSystem::Initialize(entt::basic_registry<EntityId>& registry)
     registry.on_destroy<PhysicsStateComponent>().connect<&PhysicsSystem::OnPhysicsStateComponentDestroyed>(this);
 }
 
-void PhysicsSystem::Destroy(entt::basic_registry<EntityId>&)
-{
-
-}
-
 void PhysicsSystem::Execute(RunState* pRunState, WorldState* pWorldState, entt::basic_registry<EntityId>& registry)
 {
     NCommon::Timer physicsTimer(METRIC_PHYSICS_SIM_TIME);

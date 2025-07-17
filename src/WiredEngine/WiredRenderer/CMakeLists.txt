@@ -51,6 +51,7 @@ target_compile_features(WiredRenderer
 target_compile_options(WiredRenderer
 	PRIVATE
 		${WIRED_WARNINGS_FLAGS}
+		${WIRED_LIBRARY_FLAGS}
 )
 
 target_include_directories(WiredRenderer

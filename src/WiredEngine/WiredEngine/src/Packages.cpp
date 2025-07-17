@@ -206,6 +206,23 @@ std::expected<Packages::LoadedPackageData, bool> Packages::LoadPackageAsync(IPac
         loadedPackageData.audioAssets->insert({audioAssetName, *bytes});
     }
 
+    //
+    // Load font asset data from the package source
+    //
+    loadedPackageData.fontAssets = std::make_shared<std::unordered_map<std::string, std::vector<std::byte>>>();
+    for (const auto& fontAssetName : packageSource->GetMetadata().assetNames.fontAssetNames)
+    {
+        if (*isCancelled) { return std::unexpected(false); }
+
+        const auto bytes = packageSource->GetAssetBytesBlocking(AssetType::Font, fontAssetName);
+        if (!bytes)
+        {
+            LogError("Packages::LoadPackageAsync: Failed to get font asset content: {}", fontAssetName);
+            continue;
+        }
+        loadedPackageData.fontAssets->insert({fontAssetName, *bytes});
+    }
+
     return loadedPackageData;
 }
 
@@ -217,6 +234,7 @@ bool Packages::LoadPackageFinish(IPackageSource const* packageSource, const Load
     LoadPackageShaders(loadedPackageData, loadedResources);
     LoadPackageModels(packageSource, loadedResources);
     LoadPackageAudio(packageSource, loadedPackageData, loadedResources);
+    LoadPackageFonts(packageSource, loadedPackageData, loadedResources);
 
     m_packageResources.insert({packageSource->GetPackageName(), loadedResources});
 
@@ -450,6 +468,20 @@ void Packages::LoadPackageAudio(IPackageSource const* packageSource, const Loade
     }
 }
 
+void Packages::LoadPackageFonts(IPackageSource const* packageSource, const LoadedPackageData& loadedPackageData, PackageResources& packageResources) const
+{
+    for (const auto& fontIt : *loadedPackageData.fontAssets)
+    {
+        if (!m_pResources->CreateResourceFont(PRI(packageSource->GetPackageName(), fontIt.first), fontIt.second))
+        {
+            m_pLogger->Error("Packages::LoadPackageFonts: Failed to create asset font for: {}", fontIt.first);
+            continue;
+        }
+
+        packageResources.fonts.push_back(fontIt.first);
+    }
+}
+
 std::expected<std::unordered_map<std::string, std::unique_ptr<NCommon::ImageData>>, bool>
 Packages::LoadModelExternalTextures(IPackageSource const* packageSource, const std::string& modelAssetName, Model const* pModel) const
 {
@@ -562,6 +594,12 @@ void Packages::DestroyPackageResources(const PackageName& packageName)
     for (const auto& it : packageResources->audio)
     {
         m_pResources->DestroyResourceAudio(PRI(packageName, it));
+    }
+
+    // Destroy Fonts
+    for (const auto& it : packageResources->fonts)
+    {
+        m_pResources->DestroyResourceFont(PRI(packageName, it));
     }
 
     m_packageResources.erase(packageName);

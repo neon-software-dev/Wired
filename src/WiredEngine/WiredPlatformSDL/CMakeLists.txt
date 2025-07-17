@@ -4,6 +4,7 @@ project(WiredPlatformSDL VERSION 0.0.1 LANGUAGES CXX)
 
 	find_package(SDL3 CONFIG REQUIRED)
 	find_package(SDL3_image CONFIG REQUIRED)
+	find_package(SDL3_ttf CONFIG REQUIRED)
 
 	file(GLOB WiredPlatformSDL_PublicIncludes CONFIGURE_DEPENDS include/Wired/Engine/*.h)
 	file(GLOB WiredPlatformSDL_Platform_PublicIncludes CONFIGURE_DEPENDS include/Wired/Platform/*.h)
@@ -22,6 +23,7 @@ target_link_libraries(WiredPlatformSDL
 		NEONCommon
 		SDL3::SDL3
 		$<IF:$<TARGET_EXISTS:SDL3_image::SDL3_image-shared>,SDL3_image::SDL3_image-shared,SDL3_image::SDL3_image-static>
+		$<IF:$<TARGET_EXISTS:SDL3_ttf::SDL3_ttf>,SDL3_ttf::SDL3_ttf,SDL3_ttf::SDL3_ttf-static>
 )
 
 target_compile_features(WiredPlatformSDL
@@ -34,6 +36,7 @@ target_compile_features(WiredPlatformSDL
 target_compile_options(WiredPlatformSDL
 	PRIVATE
 		${WIRED_WARNINGS_FLAGS}
+		${WIRED_LIBRARY_FLAGS}
 )
 
 target_include_directories(WiredPlatformSDL

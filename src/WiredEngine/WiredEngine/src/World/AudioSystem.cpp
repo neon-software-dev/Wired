@@ -31,11 +31,6 @@ void AudioSystem::Initialize(entt::basic_registry<EntityId>&)
 
 }
 
-void AudioSystem::Destroy(entt::basic_registry<EntityId>&)
-{
-
-}
-
 void AudioSystem::Execute(RunState*, WorldState*, entt::basic_registry<EntityId>& registry)
 {
     //

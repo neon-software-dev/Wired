@@ -20,11 +20,13 @@ namespace Wired::Platform
             Platform(std::shared_ptr<IWindow> window,
                      std::unique_ptr<IEvents> events,
                      std::unique_ptr<IFiles> files,
-                     std::unique_ptr<IImage> image)
+                     std::unique_ptr<IImage> image,
+                     std::unique_ptr<IText> text)
                 : m_window(std::move(window))
                 , m_events(std::move(events))
                 , m_files(std::move(files))
                 , m_image(std::move(image))
+                , m_text(std::move(text))
             { }
 
             ~Platform() override = default;
@@ -33,6 +35,7 @@ namespace Wired::Platform
             [[nodiscard]] IEvents* GetEvents() const override { return m_events.get(); }
             [[nodiscard]] IFiles* GetFiles() const override { return m_files.get(); }
             [[nodiscard]] IImage* GetImage() const override { return m_image.get(); }
+            [[nodiscard]] IText* GetText() const override { return m_text.get(); }
 
         private:
 
@@ -40,6 +43,7 @@ namespace Wired::Platform
             std::unique_ptr<IEvents> m_events;
             std::unique_ptr<IFiles> m_files;
             std::unique_ptr<IImage> m_image;
+            std::unique_ptr<IText> m_text;
     };
 }
 

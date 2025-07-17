@@ -30,7 +30,8 @@ namespace Wired::Engine
 
         /**
          * An optional subset of the source texture's pixel area to create the sprite
-         * from. The default is to use the entire source texture.
+         * from. In render/pixel space. The default, if unset, is to use the entire
+         * source texture.
          */
         std::optional<NCommon::RectReal> srcPixelRect{};
 

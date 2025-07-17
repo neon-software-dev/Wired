@@ -44,12 +44,13 @@ namespace Wired::Engine
     };
 
     class AudioManager;
+    class FontManager;
 
     class Resources : public IResources
     {
         public:
 
-            Resources(NCommon::ILogger* pLogger, Platform::IPlatform* pPlatform, AudioManager* pAudioManager, Render::IRenderer* pRenderer);
+            Resources(NCommon::ILogger* pLogger, Platform::IPlatform* pPlatform, AudioManager* pAudioManager, FontManager* pFontManager, Render::IRenderer* pRenderer);
             ~Resources() override;
 
             //
@@ -106,6 +107,15 @@ namespace Wired::Engine
             void DestroyResourceAudio(const ResourceIdentifier& resourceIdentifier) override;
 
             //
+            // Fonts
+            //
+            [[nodiscard]] bool CreateResourceFont(const ResourceIdentifier& resourceIdentifier, std::span<const std::byte> fontData) override;
+            void DestroyResourceFont(const ResourceIdentifier& resourceIdentifier) override;
+            [[nodiscard]] std::expected<RenderTextResult, bool> RenderText(const std::string& text,
+                                                                           const ResourceIdentifier& font,
+                                                                           const Platform::TextProperties& textProperties) override;
+
+            //
             // Materials
             //
             [[nodiscard]] std::expected<Render::MaterialId, bool> CreateMaterial(const Render::Material* pMaterial,
@@ -158,6 +168,7 @@ namespace Wired::Engine
             NCommon::ILogger* m_pLogger;
             Platform::IPlatform* m_pPlatform;
             AudioManager* m_pAudioManager;
+            FontManager* m_pFontManager;
             Render::IRenderer* m_pRenderer;
 
             NCommon::IdSource<ModelId> m_modelIds;
@@ -168,6 +179,7 @@ namespace Wired::Engine
             std::unordered_map<ModelId, LoadedModel> m_loadedModels;
             std::unordered_set<Render::MaterialId> m_loadedMaterials;
             std::unordered_set<ResourceIdentifier> m_loadedResourceAudio;
+            std::unordered_set<ResourceIdentifier> m_loadedResourceFonts;
     };
 }
 

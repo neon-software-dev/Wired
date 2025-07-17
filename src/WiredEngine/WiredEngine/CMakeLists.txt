@@ -27,6 +27,7 @@ project(WiredEngine VERSION 0.0.1 LANGUAGES CXX)
 	file(GLOB WiredEngine_Audio_SourceFiles CONFIGURE_DEPENDS src/Audio/*.cpp src/Audio/*.h)
 	file(GLOB WiredEngine_Player_SourceFiles CONFIGURE_DEPENDS src/Player/*.cpp src/Player/*.h)
 	file(GLOB WiredEngine_Util_SourceFiles CONFIGURE_DEPENDS src/Util/*.cpp src/Util/*.h)
+	file(GLOB WiredEngine_Font_SourceFiles CONFIGURE_DEPENDS src/Font/*.cpp src/Font/*.h)
 
 add_library(WiredEngine
 	${WiredEngine_PublicIncludes}
@@ -47,6 +48,7 @@ add_library(WiredEngine
 	${WiredEngine_Audio_SourceFiles}
 	${WiredEngine_Player_SourceFiles}
 	${WiredEngine_Util_SourceFiles}
+	${WiredEngine_Font_SourceFiles}
 )
 
 target_link_libraries(WiredEngine
@@ -73,6 +75,7 @@ target_compile_features(WiredEngine
 target_compile_options(WiredEngine
 	PRIVATE
 		${WIRED_WARNINGS_FLAGS}
+		${WIRED_LIBRARY_FLAGS}
 )
 
 target_include_directories(WiredEngine

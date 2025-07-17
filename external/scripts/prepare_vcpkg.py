@@ -3,7 +3,7 @@ import shutil
 import subprocess
 
 
-VCPKG_BASELINE_VERSION = "2025.04.09"
+VCPKG_BASELINE_VERSION = "2025.06.13"
 
 def ensure_vcpkg():
     if os.path.isdir('vcpkg'):
@@ -50,6 +50,7 @@ def install_dependencies():
         sdl3Dep = 'sdl3[vulkan,wayland,x11]'
     install_dep(sdl3Dep, False)
     
+    install_dep('sdl3-ttf', False)
     install_dep('sdl3-image[jpeg,png]', False)
     install_dep('spirv-reflect', False)
     install_dep('glm', False)

@@ -56,6 +56,7 @@ target_compile_features(WiredGPUVk
 target_compile_options(WiredGPUVk
 	PRIVATE
 		${WIRED_WARNINGS_FLAGS}
+		${WIRED_LIBRARY_FLAGS}
 )
 
 target_include_directories(WiredGPUVk

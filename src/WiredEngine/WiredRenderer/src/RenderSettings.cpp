@@ -10,7 +10,7 @@ namespace Wired::Render
 {
 
 RenderSettings::RenderSettings()
-    : resolution(3840, 2160)
+    : resolution(1920, 1080)
     , presentMode(GPU::PresentMode::Immediate)
     , presentBlitType(NCommon::BlitType::CenterInside)
     , framesInFlight(2U)

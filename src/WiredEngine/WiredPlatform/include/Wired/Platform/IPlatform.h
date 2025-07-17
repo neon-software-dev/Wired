@@ -11,6 +11,7 @@
 #include "IEvents.h"
 #include "IFiles.h"
 #include "IImage.h"
+#include "IText.h"
 
 namespace Wired::Platform
 {
@@ -24,6 +25,7 @@ namespace Wired::Platform
             [[nodiscard]] virtual IEvents* GetEvents() const = 0;
             [[nodiscard]] virtual IFiles* GetFiles() const = 0;
             [[nodiscard]] virtual IImage* GetImage() const = 0;
+            [[nodiscard]] virtual IText* GetText() const = 0;
     };
 }
 

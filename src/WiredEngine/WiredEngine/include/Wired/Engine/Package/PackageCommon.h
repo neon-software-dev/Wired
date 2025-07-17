@@ -35,7 +35,8 @@ namespace Wired::Engine
         Shader,
         Image,
         Model,
-        Audio
+        Audio,
+        Font
     };
 
     /**
@@ -54,6 +55,9 @@ namespace Wired::Engine
 
         // Audio asset name
         std::vector<std::string> audio;
+
+        // Font asset name
+        std::vector<std::string> fonts;
     };
 
     constexpr auto PACKAGE_MANIFEST_VERSION = 0;
@@ -66,6 +70,7 @@ namespace Wired::Engine
     constexpr auto PACKAGE_ASSETS_SHADERS_DIRECTORY = "shaders";
     constexpr auto PACKAGE_ASSETS_MODELS_DIRECTORY = "models";
     constexpr auto PACKAGE_ASSETS_AUDIO_DIRECTORY = "audio";
+    constexpr auto PACKAGE_ASSETS_FONTS_DIRECTORY = "fonts";
 
     constexpr auto SHADER_BINARY_SPIRV_EXTENSION = "spv";
 

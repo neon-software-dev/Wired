@@ -16,11 +16,6 @@ option(WIRED_OPT_IMGUI "Support for ImGui rendering" OFF)
 set(WIREDENGINE_PLATFORM_DESKTOP "Desktop")
 set(WIREDENGINE_PLATFORM_ANDROID "Android")
 
-#set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-#set(CMAKE_INSTALL_RPATH "$ORIGIN")
-#set(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)
-#set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-
 # Default target platform to desktop, if not specified
 if (NOT DEFINED WIREDENGINE_TARGET_PLATFORM)
     set(WIREDENGINE_TARGET_PLATFORM ${WIREDENGINE_PLATFORM_DESKTOP})
@@ -71,6 +66,13 @@ else()
     set(WIRED_WARNINGS_FLAGS "")
 endif()
 
+# Flags for all libraries to add to their compile options
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    set(WIRED_LIBRARY_FLAGS
+        -fvisibility=hidden
+    )
+endif()
+
 ####
 # Add manual external subprojects
 ####
@@ -85,7 +87,8 @@ add_subdirectory(WiredEngine)
 
 if (WIREDENGINE_TARGET_PLATFORM STREQUAL ${WIREDENGINE_PLATFORM_DESKTOP})
     if (${WITH_TESTDESKTOPAPP})
+        add_subdirectory(TestSuite)
         add_subdirectory(TestDesktopApp)
+        add_subdirectory(WiredEditor)
     endif()
-    add_subdirectory(WiredEditor)
 endif()

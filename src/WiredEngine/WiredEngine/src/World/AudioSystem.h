@@ -32,7 +32,6 @@ namespace Wired::Engine
             [[nodiscard]] Type GetType() const noexcept override { return Type::Audio; };
 
             void Initialize(entt::basic_registry<EntityId>& registry) override;
-            void Destroy(entt::basic_registry<EntityId>& registry) override;
 
             void Execute(RunState* pRunState,
                          WorldState* pWorld,

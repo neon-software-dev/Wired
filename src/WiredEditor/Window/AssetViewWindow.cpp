@@ -110,6 +110,9 @@ void AssetViewWindow(Engine::IEngineAccess* engine, EditorResources* pEditorReso
                 case Engine::AssetType::Audio:
                     ImGui::Text("Audio: %s", selectedAsset->assetName.c_str());
                 break;
+                case Engine::AssetType::Font:
+                    ImGui::Text("Font: %s", selectedAsset->assetName.c_str());
+                break;
             }
         }
     ImGui::End();

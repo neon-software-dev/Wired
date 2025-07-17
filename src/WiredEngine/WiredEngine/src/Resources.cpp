@@ -8,6 +8,7 @@
 #include "HeightMapUtil.h"
 
 #include "Audio/AudioManager.h"
+#include "Font/FontManager.h"
 
 #include <Wired/Platform/IPlatform.h>
 #include <Wired/Platform/IImage.h>
@@ -26,10 +27,11 @@
 namespace Wired::Engine
 {
 
-Resources::Resources(NCommon::ILogger* pLogger, Platform::IPlatform* pPlatform,  AudioManager* pAudioManager, Render::IRenderer* pRenderer)
+Resources::Resources(NCommon::ILogger* pLogger, Platform::IPlatform* pPlatform,  AudioManager* pAudioManager, FontManager* pFontManager, Render::IRenderer* pRenderer)
     : m_pLogger(pLogger)
     , m_pPlatform(pPlatform)
     , m_pAudioManager(pAudioManager)
+    , m_pFontManager(pFontManager)
     , m_pRenderer(pRenderer)
 {
 
@@ -40,6 +42,7 @@ Resources::~Resources()
     m_pLogger = nullptr;
     m_pPlatform = nullptr;
     m_pAudioManager = nullptr;
+    m_pFontManager = nullptr;
     m_pRenderer = nullptr;
 }
 
@@ -65,6 +68,11 @@ void Resources::ShutDown()
     while (!m_loadedResourceAudio.empty())
     {
         DestroyResourceAudio(*m_loadedResourceAudio.cbegin());
+    }
+
+    while (!m_loadedResourceFonts.empty())
+    {
+        DestroyResourceFont(*m_loadedResourceFonts.cbegin());
     }
 }
 
@@ -714,6 +722,62 @@ void Resources::DestroyResourceAudio(const ResourceIdentifier& resourceIdentifie
     m_pAudioManager->DestroyResourceAudio(resourceIdentifier);
 
     m_loadedResourceAudio.erase(resourceIdentifier);
+}
+
+bool Resources::CreateResourceFont(const ResourceIdentifier& resourceIdentifier, std::span<const std::byte> fontData)
+{
+    if (m_loadedResourceFonts.contains(resourceIdentifier))
+    {
+        LogWarning("Resources::CreateResourceFont: Resource font already exists: {}", resourceIdentifier.GetUniqueName());
+        return true;
+    }
+
+    if (!m_pFontManager->LoadResourceFont(resourceIdentifier, fontData))
+    {
+        LogError("Resources::CreateResourceFont: Failed to create resource font: {}", resourceIdentifier.GetUniqueName());
+        return false;
+    }
+
+    m_loadedResourceFonts.insert(resourceIdentifier);
+
+    return true;
+}
+
+void Resources::DestroyResourceFont(const ResourceIdentifier& resourceIdentifier)
+{
+    if (!m_loadedResourceFonts.contains(resourceIdentifier))
+    {
+        LogWarning("Resources::DestroyResourceFont: Resource font isn't loaded: {}", resourceIdentifier.GetUniqueName());
+        return;
+    }
+
+    m_pFontManager->DestroyResourceFont(resourceIdentifier);
+
+    m_loadedResourceFonts.erase(resourceIdentifier);
+}
+
+std::expected<RenderTextResult, bool> Resources::RenderText(const std::string& text,
+                                                            const ResourceIdentifier& font,
+                                                            const Platform::TextProperties& textProperties)
+{
+    const auto renderedText = m_pFontManager->RenderText(text, font, textProperties);
+    if (!renderedText)
+    {
+        LogError("Resources::RenderText: Failed to render text");
+        return std::unexpected(false);
+    }
+
+    const auto textureId = CreateTexture_FromImage(renderedText->imageData.get(), Render::TextureType::Texture2D, false, "RenderedText");
+    if (!textureId)
+    {
+        LogError("Resources::RenderText: Failed to created texture from rendered text");
+        return std::unexpected(false);
+    }
+
+    return RenderTextResult{
+        .textureId = *textureId,
+        .textRenderSize = {renderedText->textPixelWidth, renderedText->textPixelHeight}
+    };
 }
 
 std::expected<Render::MaterialId, bool> Resources::CreateMaterial(const Render::Material* pMaterial, const std::string& userTag)

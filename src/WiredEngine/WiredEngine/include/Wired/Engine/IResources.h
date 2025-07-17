@@ -17,6 +17,8 @@
 #include <Wired/Render/Mesh/Mesh.h>
 #include <Wired/Render/Material/Material.h>
 
+#include <Wired/Platform/Text.h>
+
 #include <NEON/Common/ImageData.h>
 #include <NEON/Common/AudioData.h>
 #include <NEON/Common/Space/Size2D.h>
@@ -28,6 +30,7 @@
 #include <optional>
 #include <unordered_map>
 #include <unordered_set>
+#include <span>
 
 namespace Wired::Engine
 {
@@ -38,6 +41,22 @@ namespace Wired::Engine
 
         // The model-space normal unit at the queried point
         glm::vec3 pointNormalUnit_modelSpace{0.0f};
+    };
+
+    struct RenderTextResult
+    {
+        /**
+         * TextureId which contains the rendered text
+         */
+        Render::TextureId textureId{};
+
+        /**
+         * The size, in render space, of the rendered text. This is different
+         * than the size of the associated texture, as textures are resized
+         * upwards to powers of 2 for the renderer. The actual text is located
+         * in the textureId at offset 0,0 (top-left) with a size of textRenderSize.
+         */
+        NCommon::Size2DUInt textRenderSize{};
     };
 
     class IResources
@@ -101,6 +120,15 @@ namespace Wired::Engine
             //
             [[nodiscard]] virtual bool CreateResourceAudio(const ResourceIdentifier& resourceIdentifier, const NCommon::AudioData* pAudioData) = 0;
             virtual void DestroyResourceAudio(const ResourceIdentifier& resourceIdentifier) = 0;
+
+            //
+            // Fonts
+            //
+            [[nodiscard]] virtual bool CreateResourceFont(const ResourceIdentifier& resourceIdentifier, std::span<const std::byte> fontData) = 0;
+            virtual void DestroyResourceFont(const ResourceIdentifier& resourceIdentifier) = 0;
+            [[nodiscard]] virtual std::expected<RenderTextResult, bool> RenderText(const std::string& text,
+                                                                                   const ResourceIdentifier& font,
+                                                                                   const Platform::TextProperties& textProperties) = 0;
 
             //
             // Materials
