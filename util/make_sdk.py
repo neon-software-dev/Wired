@@ -68,9 +68,9 @@ def main():
         
   ####
   # Copy default shaders into the SDK
-  (sdk_dir / "wired" / "default_shaders").mkdir(parents=True, exist_ok=True)
+  (sdk_dir / "wired" / "shaders").mkdir(parents=True, exist_ok=True)
   for f in (wired_dir / "src" / "default_shaders").glob("*.spv"):
-    shutil.copy(f, sdk_dir / "wired" / "default_shaders")
+    shutil.copy(f, sdk_dir / "wired" / "shaders")
 
 if __name__ == "__main__":
   main()
