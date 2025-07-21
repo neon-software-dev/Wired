@@ -37,6 +37,12 @@ The Wired Renderer currently ships with a Vulkan-based GPU implementation.
 
 ## Using Wired
 
+### Prerequisites
+
+The only public transitive dependency of Wired is the GLM math library (https://github.com/g-truc/glm), which must be made available by your project at build time. Either install it via a system package (e.g. the libglm-dev package on Ubuntu), or make it available via whichever mechanism your project uses to fetch its external dependencies (vcpkg, conan, etc.).
+
+### Steps
+
 1) Download the latest SDK release from the releases tab and extract it
 2) Configure your project to link against the Wired binaries/headers (see instructions below if your project uses CMake)
 3) Copy the sdk's ```wired``` directory to your project's build output / runtime directory
