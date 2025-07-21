@@ -35,6 +35,31 @@ The Wired Renderer currently ships with a Vulkan-based GPU implementation.
 - Player Controller
 - Input Handling
 
+## Using Wired
+
+1) Download the latest SDK release from the releases tab and extract it
+2) Configure your project to link against the Wired binaries/headers (see instructions below if your project uses CMake)
+3) Copy the sdk's ```wired``` directory to your project's build output / runtime directory
+4) Follow the details in the ```Sample Client``` section below for how to write code that uses Wired
+
+On Windows, at runtime you will also need to have either added the SDK's ```bin``` directory to your system path, or have copied the DLLs from the SDK's ```bin``` directory to your project's build output / runtime directory.
+
+### If using CMake
+
+The SDK includes a WiredEngineConfig.cmake file for easy integration with your project.
+
+Tell CMake where to find Wired, such as providing this parameter at configure time:
+
+```-DCMAKE_PREFIX_PATH={/path/to/Wired}/cmake/WiredEngine```
+
+You can then link to Wired in CMake via:
+
+```
+find_package(WiredEngine CONFIG REQUIRED)
+target_link_libraries(YourProject PRIVATE Wired::WiredDesktop)
+```
+
+
 ## Sample Client
 
 A sample client can be found at the link below. It's a minimal example of using Wired to create a window, load a package's resources, and render a model in 3D space.
@@ -43,36 +68,11 @@ A sample client can be found at the link below. It's a minimal example of using 
 
 --
 
-If you want to use package loading functionality to load assets from disk (```LoadPackageResources```), a sample package structure can be found at the link below. A ```wired``` directory with the indicated structure should be present in the runtime directory of your executable.
-
-*(Note that models must be in their own subdirectory under assets/models, with the directory name matching the model file name, as demonstrated in the sample package).*
+If you want to use package loading functionality to load assets from disk (```LoadPackageResources```), a sample/stub disk package can be found at the link below. 
 
 [Sample Package](https://github.com/neon-software-dev/Wired/blob/main/samples/PackageSample)
+
+Note that the package must be located in the runtime ```wired``` directory, placed under ```packages/{package_name}```.
+
+*(Also note that models must be in their own subdirectory under assets/models, with the directory name matching the model file name, as demonstrated in the sample package).*
   
-## Building The Engine
-
-### Dependencies
-
-Have available on the command line:
-- CMake
-- Python3 (If using any of the helper scripts)
-- A C++ compiler
-
-### Option 1 - Using the build script
-The ```build.[sh/bat]``` script will configure dependencies, invoke CMake, and build (a distro build of) the engine for you.
-
-### Option 2 - Building manually
-The engine is defined by a typical CMake project, located in src.
-
-The ```external/prepare_dependencies.[sh/bat]``` helper script uses vcpkg to fetch the engine's dependencies. It will create a local vcpkg repo and install the engine's dependencies into it.
-
-Either use the ```prepare_dependencies``` script or provide dependencies manually to CMake later via your own means.
-
-The ```CMakePresets.json``` file defines configurations for typical build presets. Preset names follow the pattern: ```desktop-[debug/release/distro]-[windows/linux]```.
-
-Set ```BUILD_SHARED_LIBS ON/OFF``` for whether to build Wired as shared or static libraries.
-
-**Sample CMake invocation:**
-```cmake src --preset desktop-distro-linux -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/install/location```
-
-See also: The ```build.sh``` script, which does the above for you.
