@@ -41,7 +41,7 @@ bool SDLText::LoadFont(const std::string& fontName, std::span<const std::byte> f
 
     std::lock_guard<std::mutex> lock(m_fontsMutex);
 
-    m_fonts.insert({fontName, Font{.fontData = {fontData.cbegin(), fontData.cend()}, .fontSizes = {}}});
+    m_fonts.insert({fontName, Font{.fontData = {fontData.begin(), fontData.end()}, .fontSizes = {}}});
 
     return true;
 }

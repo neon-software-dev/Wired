@@ -83,7 +83,7 @@ namespace Wired::Engine
             [[nodiscard]] virtual Render::TextureId GetDefaultOffscreenDepthTextureId() const = 0;
 
             [[nodiscard]] virtual bool IsImGuiAvailable() const = 0;
-            [[nodiscard]] virtual GPU::ImGuiGlobals GetImGuiGlobals() const = 0;
+            [[nodiscard]] virtual std::optional<GPU::ImGuiGlobals> GetImGuiGlobals() const = 0;
 
             #ifdef WIRED_IMGUI
                 [[nodiscard]] virtual std::optional<ImTextureID> CreateImGuiTextureReference(Render::TextureId textureId, Render::DefaultSampler sampler) = 0;

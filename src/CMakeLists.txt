@@ -58,7 +58,7 @@ if (WIRED_OPT_DEV_BUILD)
         )
     elseif (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
         message("Wired: Configuring for MSVC")
-        #set(WIRED_WARNINGS_FLAGS /MP30)
+        set(WIRED_WARNINGS_FLAGS "")
     endif()
 else()
     message("Wired: Configuring for non-developer mode")
@@ -67,10 +67,13 @@ else()
 endif()
 
 # Flags for all libraries to add to their compile options
-if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(WIRED_LIBRARY_FLAGS
         -fvisibility=hidden
+        -fvisibility-inlines-hidden
     )
+else()
+    set(WIRED_LIBRARY_FLAGS "")
 endif()
 
 ####

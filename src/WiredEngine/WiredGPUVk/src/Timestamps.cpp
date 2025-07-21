@@ -71,7 +71,7 @@ void Timestamps::QueryWrittenTimestamps()
         m_queryPool.GetVkQueryPool(),
         0, // firstQuery
         m_freeIndex, // queryCount
-        sizeof(uint64_t), // dataSize
+        sizeof(uint64_t) * m_freeIndex, // dataSize
         m_timestampRawData.data(), // pData
         sizeof(uint64_t), // stride
         // Don't need to VK_QUERY_RESULT_WAIT_BIT because at the moment this func is called after cpu<=>gpu fence sync

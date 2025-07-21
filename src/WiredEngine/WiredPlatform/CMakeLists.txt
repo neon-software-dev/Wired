@@ -27,4 +27,4 @@ target_include_directories(WiredPlatform
 
 include(GNUInstallDirs)
 
-install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT WiredEngine_Development)

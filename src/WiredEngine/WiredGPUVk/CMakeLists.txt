@@ -39,9 +39,9 @@ add_library(WiredGPUVk
 target_link_libraries(WiredGPUVk
 	PUBLIC
 		WiredGPU
-		Vulkan::Headers
 	PRIVATE
 		NEONCommon
+		Vulkan::Headers
 		GPUOpen::VulkanMemoryAllocator
 		unofficial::spirv-reflect
 )
@@ -73,6 +73,7 @@ set_target_properties(WiredGPUVk
 		EXPORT_NAME WiredGPUVk
 		VERSION ${WiredGPUVk_VERSION}
 		SOVERSION ${WiredGPUVk_VERSION_MAJOR}
+		INSTALL_RPATH "$ORIGIN"
 )
 
 ####
@@ -81,4 +82,4 @@ set_target_properties(WiredGPUVk
 
 include(GNUInstallDirs)
 
-install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT WiredEngine_Development)

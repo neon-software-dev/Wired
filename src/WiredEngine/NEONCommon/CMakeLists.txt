@@ -63,6 +63,7 @@ set_target_properties(NEONCommon
 		EXPORT_NAME NEONCommon
 		VERSION ${NEONCommon_VERSION}
 		SOVERSION ${NEONCommon_VERSION_MAJOR}
+		INSTALL_RPATH "$ORIGIN"
 )
 
 ####
@@ -71,4 +72,4 @@ set_target_properties(NEONCommon
 
 include(GNUInstallDirs)
 
-install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT WiredEngine_Development)

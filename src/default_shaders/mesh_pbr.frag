@@ -309,8 +309,7 @@ vec3 CalculateLightRadiance(
     const vec3 fragPos_viewSpace = (u_viewProjectionData.data.viewTransform * vec4(i_fragPos_worldSpace, 1.0f)).xyz;
 
     // Calculate whether the fragment is in shadow from the light
-    const float fragShadowLevel = 0.0f;
-    //const float fragShadowLevel = GetFragShadowLevel(lightData, fragPos_viewSpace, fragPos_worldSpace);
+    const float fragShadowLevel = GetFragShadowLevel(lightData, fragPos_viewSpace, fragPos_worldSpace);
 
     // If the fragment is in full shadow from the light, the light doesn't affect it, bail out early
     if (abs(fragShadowLevel - 1.0f) < EPSILON)

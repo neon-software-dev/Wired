@@ -28,7 +28,7 @@ namespace Wired::Platform
             /**
              * Called by the engine during its StartUp flow
              */
-            virtual void Initialize(const GPU::ImGuiGlobals& imGuiGlobals) = 0;
+            virtual void Initialize(const std::optional<GPU::ImGuiGlobals>& imGuiGlobals) = 0;
 
             [[nodiscard]] virtual std::queue<Event> PopEvents() = 0;
 

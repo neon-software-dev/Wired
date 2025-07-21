@@ -23,12 +23,17 @@ def ensure_vcpkg():
     print("[Prepared vcpkg]")
     
 
-def install_dep(dep, linuxDynamic):
+def install_dep(dep, dynamic):
     depStr = dep
     
-    # If we're on linux and the dependency should be linux dynamic, use the custom triplet
-    if os.name != 'nt' and linuxDynamic:
-    	depStr = dep + ':x64-linux-dynamic'
+    if os.name != 'nt' and dynamic:
+      depStr = dep + ':x64-linux-dynamic'
+    elif os.name != 'nt' and not dynamic:
+      depStr = dep + ':x64-linux'
+    
+    # If the dependency should be dynamic, use the custom triplet
+    #if os.name != 'nt' and dynamic:
+    #	depStr = dep + ':x64-linux-dynamic'
 
     print('[Installing: %s]' % (depStr))
     

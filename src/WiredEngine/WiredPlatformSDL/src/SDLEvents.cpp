@@ -62,7 +62,7 @@ void SDLEvents::RegisterCanRenderCallback(const std::optional<std::function<void
     m_canRenderCallback = _canRenderCallback;
 }
 
-void SDLEvents::Initialize(const GPU::ImGuiGlobals& imGuiGlobals)
+void SDLEvents::Initialize(const std::optional<GPU::ImGuiGlobals>& imGuiGlobals)
 {
     (void)imGuiGlobals;
 
@@ -70,8 +70,8 @@ void SDLEvents::Initialize(const GPU::ImGuiGlobals& imGuiGlobals)
         // If ImGui is available we need to sync this DLL's global ImGui state with the engine DLL's global ImGui state
         if (m_pRenderer->IsImGuiActive())
         {
-            ImGui::SetCurrentContext(imGuiGlobals.pImGuiContext);
-            ImGui::SetAllocatorFunctions(imGuiGlobals.pImGuiMemAllocFunc, imGuiGlobals.pImGuiMemFreeFunc, nullptr);
+            ImGui::SetCurrentContext(imGuiGlobals->pImGuiContext);
+            ImGui::SetAllocatorFunctions(imGuiGlobals->pImGuiMemAllocFunc, imGuiGlobals->pImGuiMemFreeFunc, nullptr);
         }
     #endif
 }

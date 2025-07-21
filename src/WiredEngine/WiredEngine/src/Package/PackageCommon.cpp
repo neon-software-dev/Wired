@@ -10,6 +10,7 @@
 #include <NEON/Common/Log/ILogger.h>
 
 #include <fstream>
+#include <ranges>
 #include <unordered_set>
 
 namespace Wired::Engine

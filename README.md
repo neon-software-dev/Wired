@@ -11,7 +11,7 @@ The Wired Renderer currently ships with a Vulkan-based GPU implementation.
 
 ## Screenshots
 
-![Alt text](screenshots/collage.webp "Collage")
+![Alt text](screenshots/collage.jpg "Collage")
 
 ## Tech Demo Video
 

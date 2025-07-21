@@ -6,16 +6,15 @@
       "hidden": true,
       "cacheVariables": {
         "WIREDENGINE_TARGET_PLATFORM": "Desktop",
-        "WIRED_OPT_IMGUI": "ON",
+        "WIRED_OPT_IMGUI": "OFF",
         "BUILD_SHARED_LIBS": "ON",
         "CMAKE_DEBUG_POSTFIX": "d",
-        "CMAKE_TOOLCHAIN_FILE": "../external/vcpkg/scripts/buildsystems/vcpkg.cmake"
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/../external/vcpkg/scripts/buildsystems/vcpkg.cmake"
       }
     },
     {
       "name": "debug",
       "hidden": true,
-      "binaryDir": "../build/debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
@@ -23,7 +22,6 @@
     {
       "name": "release",
       "hidden": true,
-      "binaryDir": "../build/release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
@@ -31,7 +29,6 @@
     {
       "name": "distro",
       "hidden": true,
-      "binaryDir": "../build/distro",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }

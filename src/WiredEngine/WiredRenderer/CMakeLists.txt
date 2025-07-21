@@ -69,7 +69,6 @@ set_target_properties(WiredRenderer
 		VERSION ${WiredRenderer_VERSION}
 		SOVERSION ${WiredRenderer_VERSION_MAJOR}
 		INSTALL_RPATH "$ORIGIN"
-		INSTALL_RPATH_USE_LINK_PATH TRUE
 )
 
 ####
@@ -78,4 +77,4 @@ set_target_properties(WiredRenderer
 
 include(GNUInstallDirs)
 
-install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT WiredEngine_Development)

@@ -9,6 +9,8 @@
 
 #include <Wired/Platform/IText.h>
 
+#include <NEON/Common/SharedLib.h>
+
 #include <mutex>
 #include <unordered_map>
 #include <vector>
@@ -23,7 +25,7 @@ namespace NCommon
 
 namespace Wired::Platform
 {
-    class SDLText : public IText
+    class NEON_PUBLIC SDLText : public IText
     {
         public:
 

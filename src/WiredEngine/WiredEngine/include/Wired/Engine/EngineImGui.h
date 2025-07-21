@@ -11,6 +11,7 @@
 
 #ifdef WIRED_IMGUI
     #include <imgui.h>
+    #include <implot.h>
 #endif
 
 namespace Wired::Engine
@@ -23,9 +24,15 @@ namespace Wired::Engine
             if (engine->IsImGuiAvailable())
             {
                 const auto imGuiGlobals = engine->GetImGuiGlobals();
+                if (!imGuiGlobals)
+                {
+                    return;
+                }
 
-                ImGui::SetCurrentContext(imGuiGlobals.pImGuiContext);
-                ImGui::SetAllocatorFunctions(imGuiGlobals.pImGuiMemAllocFunc, imGuiGlobals.pImGuiMemFreeFunc, nullptr);
+                ImGui::SetCurrentContext(imGuiGlobals->pImGuiContext);
+                ImGui::SetAllocatorFunctions(imGuiGlobals->pImGuiMemAllocFunc, imGuiGlobals->pImGuiMemFreeFunc, nullptr);
+
+                ImPlot::SetCurrentContext(imGuiGlobals->pImPlotContext);
             }
         #endif
     }

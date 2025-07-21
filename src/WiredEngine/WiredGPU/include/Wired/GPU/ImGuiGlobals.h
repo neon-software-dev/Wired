@@ -8,7 +8,8 @@
 #define WIREDENGINE_WIREDGPU_INCLUDE_WIRED_GPU_IMGUIGLOBALS_H
 
 #ifdef WIRED_IMGUI
-#include <imgui.h>
+    #include <imgui.h>
+    #include <implot.h>
 #endif
 
 namespace Wired::GPU
@@ -16,9 +17,11 @@ namespace Wired::GPU
     struct ImGuiGlobals
     {
         #ifdef WIRED_IMGUI
-            ImGuiContext *pImGuiContext;
+            ImGuiContext* pImGuiContext;
             ImGuiMemAllocFunc pImGuiMemAllocFunc;
             ImGuiMemFreeFunc pImGuiMemFreeFunc;
+
+            ImPlotContext* pImPlotContext;
         #endif
     };
 }

@@ -29,7 +29,7 @@ namespace Wired::Platform
             explicit SDLEvents(Render::IRenderer* pRenderer);
             ~SDLEvents() override;
 
-            void Initialize(const GPU::ImGuiGlobals& imGuiGlobals) override;
+            void Initialize(const std::optional<GPU::ImGuiGlobals>& imGuiGlobals) override;
 
             [[nodiscard]] std::queue<Event> PopEvents() override;
 

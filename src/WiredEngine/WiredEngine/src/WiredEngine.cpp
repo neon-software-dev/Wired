@@ -88,6 +88,8 @@ GPU::ImGuiGlobals GetImGuiGlobals()
 
         globals.pImGuiMemAllocFunc = pTempAllocFunc;
         globals.pImGuiMemFreeFunc = pTempAllocFreeFunc;
+
+        globals.pImPlotContext = ImPlot::GetCurrentContext();
     #endif
 
     return globals;
@@ -125,7 +127,7 @@ bool WiredEngine::StartUp(std::unique_ptr<Client> pClient)
     m_pEngineAccess = std::make_unique<EngineAccess>(m_pLogger, m_pMetrics, m_pPlatform, m_pRenderer, m_pRunState.get(), imGuiGlobals);
 
     // Extra events system init (must be done after renderer startup)
-    m_pPlatform->GetEvents()->Initialize(m_pEngineAccess->GetImGuiGlobals());
+    m_pPlatform->GetEvents()->Initialize(imGuiGlobals);
     m_pPlatform->GetEvents()->RegisterCanRenderCallback([this](bool canRender){
         SetCanRender(canRender);
     });

@@ -6,6 +6,20 @@
  
 #include <Wired/Engine/Package/Serialization.h>
 
+#include <Wired/Engine/Package/SceneNode.h>
+#include <Wired/Engine/Package/EntitySceneNode.h>
+#include <Wired/Engine/Package/PlayerSceneNode.h>
+#include <Wired/Engine/Package/SceneNodeTransformComponent.h>
+#include <Wired/Engine/Package/SceneNodeRenderableSpriteComponent.h>
+#include <Wired/Engine/Package/SceneNodeRenderableModelComponent.h>
+#include <Wired/Engine/Package/SceneNodePhysicsBoxComponent.h>
+#include <Wired/Engine/Package/SceneNodePhysicsSphereComponent.h>
+#include <Wired/Engine/Package/SceneNodePhysicsHeightMapComponent.h>
+
+#include <nlohmann/json.hpp>
+
+#include <glm/gtc/quaternion.hpp>
+
 namespace glm
 {
     void to_json(nlohmann::json& j, const vec2& m)
@@ -107,28 +121,6 @@ void from_json(const nlohmann::json& j, PackageManifest& o)
 }
 
 //
-// Scene
-//
-static constexpr auto SCENE_NAME = "name";
-static constexpr auto SCENE_NODES = "nodes";
-
-void to_json(nlohmann::json& j, const std::shared_ptr<Scene>& o)
-{
-    j = nlohmann::json {
-        {SCENE_NAME, o->name},
-        {SCENE_NODES, o->nodes}
-    };
-}
-
-void from_json(const nlohmann::json& j, std::shared_ptr<Scene>& o)
-{
-    o = std::make_shared<Scene>();
-
-    j.at(SCENE_NAME).get_to(o->name);
-    j.at(SCENE_NODES).get_to(o->nodes);
-}
-
-//
 // SceneNode
 //
 static constexpr auto SCENE_NODE_TYPE = "type";
@@ -178,23 +170,6 @@ void from_json(const nlohmann::json& j, std::shared_ptr<SceneNode>& o)
 }
 
 //
-// EntitySceneNode
-//
-static constexpr auto ENTITY_SCENE_NODE_COMPONENTS = "components";
-
-void to_json(nlohmann::json& j, const std::shared_ptr<EntitySceneNode>& o)
-{
-    j = nlohmann::json {
-        {ENTITY_SCENE_NODE_COMPONENTS, o->components},
-    };
-}
-
-void from_json(const nlohmann::json& j, std::shared_ptr<EntitySceneNode>& o)
-{
-    j.at(ENTITY_SCENE_NODE_COMPONENTS).get_to(o->components);
-}
-
-//
 // PlayerSceneNode
 //
 static constexpr auto PLAYER_SCENE_NODE_POSITION = "position";
@@ -215,6 +190,28 @@ void from_json(const nlohmann::json& j, std::shared_ptr<PlayerSceneNode>& o)
     j.at(PLAYER_SCENE_NODE_POSITION).get_to(o->position);
     j.at(PLAYER_SCENE_NODE_HEIGHT).get_to(o->height);
     j.at(PLAYER_SCENE_NODE_RADIUS).get_to(o->radius);
+}
+
+//
+// Scene
+//
+static constexpr auto SCENE_NAME = "name";
+static constexpr auto SCENE_NODES = "nodes";
+
+void to_json(nlohmann::json& j, const std::shared_ptr<Scene>& o)
+{
+    j = nlohmann::json {
+        {SCENE_NAME, o->name},
+        {SCENE_NODES, o->nodes}
+    };
+}
+
+void from_json(const nlohmann::json& j, std::shared_ptr<Scene>& o)
+{
+    o = std::make_shared<Scene>();
+
+    j.at(SCENE_NAME).get_to(o->name);
+    j.at(SCENE_NODES).get_to(o->nodes);
 }
 
 //
@@ -435,6 +432,98 @@ void NEON_PUBLIC to_json(nlohmann::json& j, const std::shared_ptr<SceneNodePhysi
 void NEON_PUBLIC from_json(const nlohmann::json& j, std::shared_ptr<SceneNodePhysicsHeightMapComponent>& o)
 {
     (void)j; (void)o;
+}
+
+//
+// EntitySceneNode
+//
+static constexpr auto ENTITY_SCENE_NODE_COMPONENTS = "components";
+
+void to_json(nlohmann::json& j, const std::shared_ptr<EntitySceneNode>& o)
+{
+    j = nlohmann::json {
+        {ENTITY_SCENE_NODE_COMPONENTS, o->components},
+    };
+}
+
+void from_json(const nlohmann::json& j, std::shared_ptr<EntitySceneNode>& o)
+{
+    j.at(ENTITY_SCENE_NODE_COMPONENTS).get_to(o->components);
+}
+
+////////////////////////////////////////////////
+
+template <typename T>
+[[nodiscard]] static std::expected<nlohmann::json, bool> ObjectToJson(const T& o)
+{
+    try
+    {
+        return nlohmann::json(o);
+    }
+    catch (nlohmann::json::exception& e)
+    {
+        return std::unexpected(false);
+    }
+}
+
+[[nodiscard]] std::vector<std::byte> JsonToBytes(const nlohmann::json& j)
+{
+   const auto jsonStr = j.dump(2);
+   std::vector<std::byte> byteBuffer(jsonStr.length());
+   memcpy(byteBuffer.data(), jsonStr.data(), jsonStr.length());
+   return byteBuffer;
+}
+
+template <typename T>
+[[nodiscard]] std::expected<T, bool> ObjectFromBytes_Internal(const std::vector<std::byte>& bytes)
+{
+    try
+    {
+        const nlohmann::json j = nlohmann::json::parse(bytes.cbegin(), bytes.cend());
+        return j.template get<T>();
+    }
+    catch (nlohmann::json::exception& e)
+    {
+        return std::unexpected(false);
+    }
+
+    return std::unexpected(false);
+}
+
+template <typename T>
+[[nodiscard]] std::expected<std::vector<std::byte>, bool> ObjectToBytes_Internal(const T& obj)
+{
+    const auto json = ObjectToJson(obj);
+    if (!json)
+    {
+        return std::unexpected(json.error());
+    }
+
+    return JsonToBytes(*json);
+}
+
+template<>
+std::expected<PackageManifest, bool> ObjectFromBytes<PackageManifest>(const std::vector<std::byte>& bytes)
+{
+    return ObjectFromBytes_Internal<PackageManifest>(bytes);
+}
+
+template<>
+std::expected<std::shared_ptr<Scene>, bool> ObjectFromBytes<std::shared_ptr<Scene>>(const std::vector<std::byte>& bytes)
+{
+    return ObjectFromBytes_Internal<std::shared_ptr<Scene>>(bytes);
+}
+
+template<>
+std::expected<std::vector<std::byte>, bool> ObjectToBytes<PackageManifest>(const PackageManifest& obj)
+{
+    return ObjectToBytes_Internal<PackageManifest>(obj);
+}
+
+template<>
+std::expected<std::vector<std::byte>, bool> ObjectToBytes<std::shared_ptr<Scene>>(const std::shared_ptr<Scene>& obj)
+{
+    return ObjectToBytes_Internal<std::shared_ptr<Scene>>(obj);
 }
 
 }

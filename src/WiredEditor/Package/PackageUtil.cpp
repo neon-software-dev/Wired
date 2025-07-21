@@ -84,18 +84,17 @@ bool WritePackageMetadataToDisk(const Engine::Package& package, const std::files
     //
     // Write the package manifest file
     //
-    const auto packageManifestJson = ObjectToJson(package.manifest);
-    if (!packageManifestJson)
+    const auto packageManifestBytes = Engine::ObjectToBytes(package.manifest);
+    if (!packageManifestBytes)
     {
         return false;
     }
-    const auto packageManifestBytes = Engine::JsonToBytes(*packageManifestJson);
 
     auto packageManifestFileName = std::filesystem::path(package.manifest.packageName);
     packageManifestFileName.replace_extension(Engine::PACKAGE_EXTENSION);
     const auto packageManifestFilePath = packageDirectoryPath / packageManifestFileName;
 
-    if (!CreateOrTruncateFile(packageManifestFilePath, packageManifestBytes))
+    if (!CreateOrTruncateFile(packageManifestFilePath, *packageManifestBytes))
     {
         return false;
     }
@@ -117,14 +116,13 @@ bool WritePackageMetadataToDisk(const Engine::Package& package, const std::files
         auto sceneFilePath = scenesDirectory / scene->name;
         sceneFilePath.replace_extension(Engine::SCENE_EXTENSION);
 
-        const auto sceneJson = ObjectToJson(scene);
-        if (!sceneJson)
+        const auto sceneBytes = Engine::ObjectToBytes(scene);
+        if (!sceneBytes)
         {
             return false;
         }
-        const auto sceneBytes = Engine::JsonToBytes(*sceneJson);
 
-        if (!CreateOrTruncateFile(sceneFilePath, sceneBytes))
+        if (!CreateOrTruncateFile(sceneFilePath, *sceneBytes))
         {
             return false;
         }

@@ -144,7 +144,7 @@ Render::TextureId EngineAccess::GetDefaultOffscreenDepthTextureId() const
 
 bool EngineAccess::IsImGuiAvailable() const
 {
-    return m_pRunState->imGuiActive;
+    return m_pRunState->imGuiActive && m_imGuiGlobals;
 }
 
 #ifdef WIRED_IMGUI

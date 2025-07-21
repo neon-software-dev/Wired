@@ -91,7 +91,7 @@ bool DesktopEngine::Initialize(const std::string& applicationName,
     //
     if (!SDL_Vulkan_LoadLibrary(nullptr))
     {
-        m_logger->Fatal("DesktopEngine::StartUp: Failed to load Vulkan library");
+        m_logger->Fatal("DesktopEngine::StartUp: Failed to load Vulkan library. Error: {}", SDL_GetError());
         return false;
     }
 

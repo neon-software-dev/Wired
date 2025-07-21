@@ -83,9 +83,6 @@ std::unique_ptr<Render::MeshData> GenerateHeightMapMeshData(const HeightMap* pHe
 
             const auto position = glm::vec3(xPos, pHeightMap->data[dataIndex], zPos);
 
-            // Normals are determined in a separate loop below, once we have all the positions of each vertex figured out
-            const auto normal = glm::vec3(0,1,0);
-
             float uvX = 0.0f;
             float uvY = 0.0f;
 
@@ -110,6 +107,8 @@ std::unique_ptr<Render::MeshData> GenerateHeightMapMeshData(const HeightMap* pHe
             const auto uv = glm::vec2(uvX, uvY);
 
             const auto tangent = glm::vec3(0,1,0); // TODO: Can/should we calculate this manually
+            // Normals are determined in a separate loop below, once we have all the positions of each vertex figured out
+            const auto normal = glm::vec3(0,0,0);
 
             vertices.emplace_back(position, normal, uv, tangent);
             verticesAABB.AddPoints({position});
@@ -121,58 +120,68 @@ std::unique_ptr<Render::MeshData> GenerateHeightMapMeshData(const HeightMap* pHe
         zPos += vertexZDelta;
     }
 
-    // Loop over vertices and calculate normals from looking at neighboring vertices
-    for (std::size_t y = 0; y < pHeightMap->dataSize.h; ++y)
+    // Compute un-normalized vertex normals.
+    //
+    // For each triangle ABC:
+    //    p = cross(B-A, C-A)
+    //    A.n += p
+    //    B.n += p
+    //    C.n += p
+    //
+    // (Note that the cross product is proportional to triangle area)
+    for (std::size_t y = 0; y < pHeightMap->dataSize.h - 1; ++y)
     {
-        for (std::size_t x = 0; x < pHeightMap->dataSize.w; ++x)
+        for (std::size_t x = 0; x < pHeightMap->dataSize.w - 1; ++x)
         {
-            // Index of this vertex's height map data entry
             const auto dataIndex = x + (y * pHeightMap->dataSize.w);
 
-            // model-space position of the vertex to compute a normal for
-            const auto centerPosition = vertices[dataIndex].position;
+            // Data positions for the two triangles within this grid square
+            const auto triDataPositions = std::vector<std::size_t>{
+                // Square tri 1
+                dataIndex,
+                dataIndex + pHeightMap->dataSize.w,
+                dataIndex + pHeightMap->dataSize.w + 1,
 
-            const bool isLeftEdgeVertex = x == 0;
-            const bool isRightEdgeVertex = x == (pHeightMap->dataSize.w - 1);
-            const bool isFrontEdgeVertex = y == (pHeightMap->dataSize.w - 1);
-            const bool isBackEdgeVertex = y == 0;
+                // Square tri 2
+                dataIndex,
+                dataIndex + pHeightMap->dataSize.w + 1,
+                dataIndex + 1
+            };
 
-            // Get the positions of the vertices to all four sides of this vertex. If some don't exist
-            // because the vertex is on an edge, just default them to the center vertex's position.
-            glm::vec3 leftVertexPosition = centerPosition;
-            glm::vec3 rightVertexPosition = centerPosition;
-            glm::vec3 frontVertexPosition = centerPosition;
-            glm::vec3 backVertexPosition = centerPosition;
+            // Run algorithm twice, once for each square triangle
+            for (unsigned int pos = 0; pos < triDataPositions.size(); pos += 3)
+            {
+                auto& a = vertices.at(triDataPositions[pos]);
+                auto& b = vertices.at(triDataPositions[pos+1]);
+                auto& c = vertices.at(triDataPositions[pos+2]);
 
-            if (!isLeftEdgeVertex)
-            {
-                leftVertexPosition = vertices[dataIndex - 1].position;
-            }
-            if (!isRightEdgeVertex)
-            {
-                rightVertexPosition = vertices[dataIndex + 1].position;
-            }
-            if (!isFrontEdgeVertex)
-            {
-                frontVertexPosition = vertices[dataIndex + pHeightMap->dataSize.w].position;
-            }
-            if (!isBackEdgeVertex)
-            {
-                backVertexPosition = vertices[dataIndex - pHeightMap->dataSize.w].position;
-            }
+                const auto e1 = b.position - a.position;
+                const auto e2 = c.position - a.position;
 
-            // Calculate vectors that point left to right and back to front across the center vertex
-            const glm::vec3 dxUnit = glm::normalize(leftVertexPosition - rightVertexPosition);
-            const glm::vec3 dzUnit = glm::normalize(frontVertexPosition - backVertexPosition);
+                // Don't allow crossing parallel vectors
+                if (Render::AreUnitVectorsParallel(glm::normalize(e1), glm::normalize(e2)))
+                {
+                    continue;
+                }
 
-            if (!Render::AreUnitVectorsParallel(dxUnit, dzUnit))
-            {
-                vertices[dataIndex].normal = glm::normalize(glm::cross(dxUnit, dzUnit));
+                const auto p = glm::cross(e1, e2);
+                a.normal += p;
+                b.normal += p;
+                c.normal += p;
             }
-            else
-            {
-                vertices[dataIndex].normal = glm::vec3(0, 1, 0);
-            }
+        }
+    }
+
+    // Normalize vertex normals now that all weighted face normals have been added to them
+    for (auto &vertex : vertices)
+    {
+        if (glm::length(vertex.normal) <= glm::epsilon<float>())
+        {
+            vertex.normal = {0,1,0};
+        }
+        else
+        {
+            vertex.normal = glm::normalize(vertex.normal);
         }
     }
 

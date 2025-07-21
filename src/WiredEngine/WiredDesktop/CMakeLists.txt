@@ -52,7 +52,6 @@ set_target_properties(WiredDesktop
 		VERSION ${WiredDesktop_VERSION}
 		SOVERSION ${WiredDesktop_VERSION_MAJOR}
 		INSTALL_RPATH "$ORIGIN"
-		INSTALL_RPATH_USE_LINK_PATH TRUE
 )
 
 ####
@@ -61,4 +60,4 @@ set_target_properties(WiredDesktop
 
 include(GNUInstallDirs)
 
-install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT WiredEngine_Development)

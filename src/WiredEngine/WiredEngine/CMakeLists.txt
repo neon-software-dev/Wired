@@ -56,13 +56,13 @@ target_link_libraries(WiredEngine
 		NEONCommon
 		WiredPlatform
 		WiredGPU
-		nlohmann_json::nlohmann_json
 	PRIVATE
 		EnTT::EnTT
 		assimp::assimp
 		Jolt::Jolt
 		AudioFile::AudioFile
 		OpenAL::OpenAL
+		nlohmann_json::nlohmann_json
 )
 
 target_compile_features(WiredEngine
@@ -93,7 +93,6 @@ set_target_properties(WiredEngine
 		VERSION ${WiredEngine_VERSION}
 		SOVERSION ${WiredEngine_VERSION_MAJOR}
 		INSTALL_RPATH "$ORIGIN"
-		INSTALL_RPATH_USE_LINK_PATH TRUE
 )
 
 ####
@@ -102,4 +101,4 @@ set_target_properties(WiredEngine
 
 include(GNUInstallDirs)
 
-install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT WiredEngine_Development)

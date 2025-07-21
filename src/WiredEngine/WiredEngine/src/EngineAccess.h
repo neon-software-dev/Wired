@@ -65,7 +65,7 @@ namespace Wired::Engine
             [[nodiscard]] Render::TextureId GetDefaultOffscreenColorTextureId() const override;
             [[nodiscard]] Render::TextureId GetDefaultOffscreenDepthTextureId() const override;
             [[nodiscard]] bool IsImGuiAvailable() const override;
-            [[nodiscard]] GPU::ImGuiGlobals GetImGuiGlobals() const override { return *m_imGuiGlobals; }
+            [[nodiscard]] std::optional<GPU::ImGuiGlobals> GetImGuiGlobals() const override { return m_imGuiGlobals; }
             #ifdef WIRED_IMGUI
                 [[nodiscard]] std::optional<ImTextureID> CreateImGuiTextureReference(Render::TextureId textureId, Render::DefaultSampler sampler) override;
             #endif

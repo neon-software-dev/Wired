@@ -8,6 +8,7 @@
 #define WIREDENGINE_WIREDENGINE_INCLUDE_WIRED_ENGINE_UTIL_PERLINNOISE_H
 
 #include <NEON/Common/ImageData.h>
+#include <NEON/Common/SharedLib.h>
 
 #include <glm/glm.hpp>
 
@@ -17,7 +18,7 @@
 
 namespace Wired::Engine
 {
-    class PerlinNoise
+    class NEON_PUBLIC PerlinNoise
     {
         public:
 

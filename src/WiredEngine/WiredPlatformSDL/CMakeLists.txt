@@ -53,6 +53,7 @@ set_target_properties(WiredPlatformSDL
 		EXPORT_NAME WiredPlatformSDL
 		VERSION ${WiredPlatformSDL_VERSION}
 		SOVERSION ${WiredPlatformSDL_VERSION_MAJOR}
+		INSTALL_RPATH "$ORIGIN"
 )
 
 ####
@@ -61,4 +62,4 @@ set_target_properties(WiredPlatformSDL
 
 include(GNUInstallDirs)
 
-install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT WiredEngine_Development)
